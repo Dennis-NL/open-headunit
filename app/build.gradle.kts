@@ -133,6 +133,13 @@ android {
             // storePassword = property("HEADUNIT_KEYSTORE_PASSWORD") as String
             // keyAlias = property("HEADUNIT_KEYSTORE_ALIAS") as String
             // keyPassword = property("HEADUNIT_KEYSTORE_PASSWORD") as String
+            // Fixed debug key so CI debug builds update in place instead of needing an uninstall
+            rootProject.file("debug.keystore").takeIf { it.exists() }?.let {
+                storeFile = it
+                storePassword = "android"
+                keyAlias = "androiddebugkey"
+                keyPassword = "android"
+            }
         }
         create("release") {
             val defaultStoreFile = when {

@@ -14,7 +14,9 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Build
 import android.os.Handler
+import android.os.IBinder
 import android.os.Looper
+import android.os.Parcel
 import android.provider.Settings as SystemSettings
 import androidx.core.content.ContextCompat
 import com.andrerinas.openheadunit.contract.LocationUpdateIntent
@@ -35,7 +37,6 @@ class NightModeManager(
     private var lastEmittedValue: Boolean? = null
     private var currentLux: Float = -1f
     private var currentBrightness: Int = -1
-    private var dynavinBrightness: Int = -1
     private var isFirstSensorReading = true
     private var isSensorRegistered = false
     private var isObserverRegistered = false
@@ -61,22 +62,19 @@ class NightModeManager(
         }
     }
 
-    // Dynavin units dim through a temporary brightness the settings never see; the target arrives as a broadcast.
-    private val dynavinBrightnessReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            val target = intent.getFloatExtra("target", Float.NaN)
-            if (target.isNaN()) return
-            dynavinBrightness = (target * 255f).toInt().coerceIn(0, 255)
-            update(debounce = false)
-        }
-    }
-
     // Separate observer instance for the car-signal key so unregister doesn't
     // accidentally remove the brightness observer when switching modes.
     // Car ILL+ is a binary signal already debounced by the car hardware, so emit
     // immediately instead of going through the 2s sensor-noise debounce.
     private val carSignalObserver = object : ContentObserver(handler) {
         override fun onChange(selfChange: Boolean) {
+            update(debounce = false)
+        }
+    }
+
+    // Dynavin units: ILL changes are announced by the panel-brightness broadcast; the state itself is read from dynavin_prop.
+    private val dynavinIllReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
             update(debounce = false)
         }
     }
@@ -129,11 +127,11 @@ class NightModeManager(
         }
         if (isObserverRegistered) {
             context.contentResolver.unregisterContentObserver(brightnessObserver)
-            try { context.unregisterReceiver(dynavinBrightnessReceiver) } catch (e: Exception) {}
             isObserverRegistered = false
         }
         if (isCarSignalObserverRegistered) {
             context.contentResolver.unregisterContentObserver(carSignalObserver)
+            try { context.unregisterReceiver(dynavinIllReceiver) } catch (e: Exception) {}
             isCarSignalObserverRegistered = false
         }
         if (isSystemCallbacksRegistered) {
@@ -183,18 +181,11 @@ class NightModeManager(
                         brightnessObserver
                     )
                 }
-                ContextCompat.registerReceiver(
-                    context,
-                    dynavinBrightnessReceiver,
-                    IntentFilter("dynavin.intent.action.ScreenBrightness"),
-                    ContextCompat.RECEIVER_EXPORTED
-                )
                 isObserverRegistered = true
             }
         } else {
             if (isObserverRegistered) {
                 context.contentResolver.unregisterContentObserver(brightnessObserver)
-                try { context.unregisterReceiver(dynavinBrightnessReceiver) } catch (e: Exception) {}
                 isObserverRegistered = false
             }
         }
@@ -207,11 +198,18 @@ class NightModeManager(
                     false,
                     carSignalObserver
                 )
+                ContextCompat.registerReceiver(
+                    context,
+                    dynavinIllReceiver,
+                    IntentFilter("dynavin.intent.action.ScreenBrightness"),
+                    ContextCompat.RECEIVER_EXPORTED
+                )
                 isCarSignalObserverRegistered = true
             }
         } else {
             if (isCarSignalObserverRegistered) {
                 context.contentResolver.unregisterContentObserver(carSignalObserver)
+                try { context.unregisterReceiver(dynavinIllReceiver) } catch (e: Exception) {}
                 isCarSignalObserverRegistered = false
             }
         }
@@ -279,9 +277,13 @@ class NightModeManager(
                 val carMode = try {
                     SystemSettings.System.getInt(context.contentResolver, "car_mode")
                 } catch (_: Exception) { -1 }
+                val dynavinIll = if (carMode < 0) readDynavinIll() else null
                 if (carMode >= 0) {
                     isNight = carMode != 0
                     AppLog.d("NightModeManager: CAR_SIGNAL car_mode=$carMode isNight=$isNight")
+                } else if (dynavinIll != null) {
+                    isNight = dynavinIll
+                    AppLog.d("NightModeManager: CAR_SIGNAL dynavin ill=$dynavinIll")
                 } else {
                     AppLog.w("NightModeManager: CAR_SIGNAL key 'car_mode' not present; keeping previous state")
                     isNight = lastEmittedValue ?: false
@@ -339,8 +341,27 @@ class NightModeManager(
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
+    private fun readDynavinIll(): Boolean? {
+        val data = Parcel.obtain()
+        val reply = Parcel.obtain()
+        return try {
+            val binder = Class.forName("android.os.ServiceManager")
+                .getMethod("getService", String::class.java)
+                .invoke(null, "dynavin_prop") as? IBinder ?: return null
+            data.writeInterfaceToken("android.dynavin.prop.IDynavinPropService")
+            data.writeString("dynavin_mark_mcu_heartbeat_ill")
+            binder.transact(4, data, reply, 0) // RPC_ProviderDnvService_keep_getValue
+            reply.readException()
+            reply.readString()?.toBooleanStrictOrNull()
+        } catch (_: Exception) {
+            null
+        } finally {
+            data.recycle()
+            reply.recycle()
+        }
+    }
+
     private fun readBrightness(): Int {
-        if (dynavinBrightness >= 0) return dynavinBrightness
         // On API 28+ (Android 9+) the brightness slider primarily writes to
         // `screen_brightness_float` (0.0..1.0). The legacy integer SCREEN_BRIGHTNESS
         // may be stale, missing (when slider hits 0), or driven by auto-brightness,

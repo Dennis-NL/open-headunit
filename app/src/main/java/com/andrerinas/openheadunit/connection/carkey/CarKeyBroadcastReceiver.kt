@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.SystemClock
 import android.view.KeyEvent
 import androidx.core.content.ContextCompat
 import androidx.core.content.IntentCompat
@@ -164,7 +165,7 @@ class CarKeyBroadcastReceiver : BroadcastReceiver(), CarKeyReceiver {
             "com.bz.action.phone.pickup" -> handleClick(context, 3001)
             "com.bz.action.phone.hangup" -> handleClick(context, 3002)
             "dynavin.intent.action.KeyEvent" ->
-                DYNAVIN_KEYS[intent.getIntExtra("keycode", 0)]?.let { handleClick(context, it) }
+                DYNAVIN_KEYS[intent.getIntExtra("keycode", 0)]?.let { handleClick(context, it, SystemClock.uptimeMillis()) }
         }
     }
 }
