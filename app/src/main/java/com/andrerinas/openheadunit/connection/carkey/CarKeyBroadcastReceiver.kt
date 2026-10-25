@@ -11,6 +11,7 @@ import androidx.core.content.IntentCompat
 import com.andrerinas.openheadunit.App
 import com.andrerinas.openheadunit.connection.CommManager
 import com.andrerinas.openheadunit.contract.KeyIntent
+import com.andrerinas.openheadunit.input.DynavinPanelKey
 import com.andrerinas.openheadunit.utils.AppLog
 
 /**
@@ -42,25 +43,9 @@ class CarKeyBroadcastReceiver : BroadcastReceiver(), CarKeyReceiver {
             "com.eryanet.media.pause",
             "com.bz.action.phone.pickup", // BZ (Joying etc.)
             "com.bz.action.phone.hangup",
-            "dynavin.intent.action.KeyEvent", // Dynavin (MMI knob / joystick)
+            DynavinPanelKey.ACTION, // Dynavin (MMI knob / keys)
             "com.tencent.qqmusiccar.action.MEDIA_BUTTON_INNER_ONKEY",
             "cn.kuwo.kwmusicauto.action.MEDIA_BUTTON"
-        )
-
-        // Dynavin MCU key codes arrive as learnable virtual keys (DYNAVIN_KEY_BASE + code). Codes 300..407 seen on
-        // an Audi MMI 3G panel: 305 NAV, 316 RADIO, 323 MEDIA, 326 BACK, 329 MENU, 340 knob press, 342 INFO,
-        // 376-379 corner keys, 380/381 knob rotation.
-        private const val DYNAVIN_KEY_BASE = 4000
-
-        // Used while the virtual key is not mapped in the keymap; SOFT_LEFT/RIGHT become rotary scroll
-        private val DYNAVIN_DEFAULT_KEYS = mapOf(
-            340 to KeyEvent.KEYCODE_DPAD_CENTER,
-            376 to KeyEvent.KEYCODE_DPAD_UP,
-            377 to KeyEvent.KEYCODE_DPAD_DOWN,
-            378 to KeyEvent.KEYCODE_DPAD_LEFT,
-            379 to KeyEvent.KEYCODE_DPAD_RIGHT,
-            380 to KeyEvent.KEYCODE_SOFT_RIGHT,
-            381 to KeyEvent.KEYCODE_SOFT_LEFT,
         )
     }
 
@@ -169,12 +154,12 @@ class CarKeyBroadcastReceiver : BroadcastReceiver(), CarKeyReceiver {
             "com.eryanet.media.pause" -> handleClick(context, 2005)
             "com.bz.action.phone.pickup" -> handleClick(context, 3001)
             "com.bz.action.phone.hangup" -> handleClick(context, 3002)
-            "dynavin.intent.action.KeyEvent" -> {
-                val code = intent.getIntExtra("keycode", 0)
+            DynavinPanelKey.ACTION -> {
+                val code = intent.getIntExtra(DynavinPanelKey.EXTRA_KEYCODE, 0)
                 if (code <= 0) return
-                val virtual = DYNAVIN_KEY_BASE + code
+                val virtual = DynavinPanelKey.toKeyCode(code)
                 val mapped = App.provide(context).settings.keyCodes.containsValue(virtual)
-                val key = if (mapped) virtual else DYNAVIN_DEFAULT_KEYS[code] ?: virtual
+                val key = if (mapped) virtual else DynavinPanelKey.defaultKeyCode(code) ?: virtual
                 handleClick(context, key, SystemClock.uptimeMillis(), virtual)
             }
         }
