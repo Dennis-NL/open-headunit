@@ -157,10 +157,9 @@ class CarKeyBroadcastReceiver : BroadcastReceiver(), CarKeyReceiver {
             DynavinPanelKey.ACTION -> {
                 val code = intent.getIntExtra(DynavinPanelKey.EXTRA_KEYCODE, 0)
                 if (code <= 0) return
-                val virtual = DynavinPanelKey.toKeyCode(code)
-                val mapped = App.provide(context).settings.keyCodes.containsValue(virtual)
-                val key = if (mapped) virtual else DynavinPanelKey.defaultKeyCode(code) ?: virtual
-                handleClick(context, key, SystemClock.uptimeMillis(), virtual)
+                if (DynavinPanelKey.mcuKeysActive && code in DynavinPanelKey.MCU_KEYS.values) return
+                val key = DynavinPanelKey.keyFor(App.provide(context).settings.keyCodes, code)
+                handleClick(context, key, SystemClock.uptimeMillis(), DynavinPanelKey.toKeyCode(code))
             }
         }
     }

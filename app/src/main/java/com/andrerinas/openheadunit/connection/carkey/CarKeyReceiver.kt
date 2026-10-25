@@ -19,6 +19,7 @@ interface CarKeyReceiver {
                 CarKeyBroadcastReceiver(),
                 CarBydReceiver(),
                 CarFYTReceiver(),
+                CarDynavinMcuReceiver(),
             )
         }
     }

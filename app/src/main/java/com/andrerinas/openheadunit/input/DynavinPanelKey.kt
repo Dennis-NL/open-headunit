@@ -43,9 +43,21 @@ object DynavinPanelKey {
         381 to KeyEvent.KEYCODE_SOFT_LEFT,
     )
 
+    /** Raw MCU key in `E_ProtOS_Key` frames → Dynavin code. These come on press; the MCU drops the joystick releases. */
+    val MCU_KEYS = mapOf(240 to 376, 241 to 377, 242 to 378, 243 to 379)
+
+    /** Codes taken from MCU frames while CarDynavinMcuReceiver listens, so the broadcast copy is ignored. */
+    @Volatile var mcuKeysActive = false
+
     fun toKeyCode(dynavinCode: Int): Int = VIRTUAL_BASE + dynavinCode
 
     fun defaultKeyCode(dynavinCode: Int): Int? = DEFAULTS[dynavinCode]
+
+    /** The key to send: the keymap entry for the virtual key if there is one, else the default, else the virtual key. */
+    fun keyFor(keyCodes: Map<Int, Int>, dynavinCode: Int): Int {
+        val virtual = toKeyCode(dynavinCode)
+        return if (keyCodes.containsValue(virtual)) virtual else defaultKeyCode(dynavinCode) ?: virtual
+    }
 
     fun label(keyCode: Int): String? {
         if (keyCode !in VIRTUAL_RANGE) return null
