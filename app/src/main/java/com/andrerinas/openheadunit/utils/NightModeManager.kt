@@ -35,6 +35,7 @@ class NightModeManager(
     private var lastEmittedValue: Boolean? = null
     private var currentLux: Float = -1f
     private var currentBrightness: Int = -1
+    private var dynavinBrightness: Int = -1
     private var isFirstSensorReading = true
     private var isSensorRegistered = false
     private var isObserverRegistered = false
@@ -57,6 +58,16 @@ class NightModeManager(
     private val brightnessObserver = object : ContentObserver(handler) {
         override fun onChange(selfChange: Boolean) {
             update()
+        }
+    }
+
+    // Dynavin units dim through a temporary brightness the settings never see; the target arrives as a broadcast.
+    private val dynavinBrightnessReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val target = intent.getFloatExtra("target", Float.NaN)
+            if (target.isNaN()) return
+            dynavinBrightness = (target * 255f).toInt().coerceIn(0, 255)
+            update(debounce = false)
         }
     }
 
@@ -118,6 +129,7 @@ class NightModeManager(
         }
         if (isObserverRegistered) {
             context.contentResolver.unregisterContentObserver(brightnessObserver)
+            try { context.unregisterReceiver(dynavinBrightnessReceiver) } catch (e: Exception) {}
             isObserverRegistered = false
         }
         if (isCarSignalObserverRegistered) {
@@ -171,11 +183,18 @@ class NightModeManager(
                         brightnessObserver
                     )
                 }
+                ContextCompat.registerReceiver(
+                    context,
+                    dynavinBrightnessReceiver,
+                    IntentFilter("dynavin.intent.action.ScreenBrightness"),
+                    ContextCompat.RECEIVER_EXPORTED
+                )
                 isObserverRegistered = true
             }
         } else {
             if (isObserverRegistered) {
                 context.contentResolver.unregisterContentObserver(brightnessObserver)
+                try { context.unregisterReceiver(dynavinBrightnessReceiver) } catch (e: Exception) {}
                 isObserverRegistered = false
             }
         }
@@ -321,6 +340,7 @@ class NightModeManager(
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
     private fun readBrightness(): Int {
+        if (dynavinBrightness >= 0) return dynavinBrightness
         // On API 28+ (Android 9+) the brightness slider primarily writes to
         // `screen_brightness_float` (0.0..1.0). The legacy integer SCREEN_BRIGHTNESS
         // may be stale, missing (when slider hits 0), or driven by auto-brightness,
