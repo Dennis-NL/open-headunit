@@ -47,8 +47,13 @@ class CarKeyBroadcastReceiver : BroadcastReceiver(), CarKeyReceiver {
             "cn.kuwo.kwmusicauto.action.MEDIA_BUTTON"
         )
 
-        // Dynavin MCU key codes (from com.dnv.dnv_menu Receiver_key) -> AA keys; SOFT_LEFT/RIGHT become rotary scroll
-        private val DYNAVIN_KEYS = mapOf(
+        // Dynavin MCU key codes arrive as learnable virtual keys (DYNAVIN_KEY_BASE + code). Codes 300..407 seen on
+        // an Audi MMI 3G panel: 305 NAV, 316 RADIO, 323 MEDIA, 326 BACK, 329 MENU, 340 knob press, 342 INFO,
+        // 376-379 corner keys, 380/381 knob rotation.
+        private const val DYNAVIN_KEY_BASE = 4000
+
+        // Used while the virtual key is not mapped in the keymap; SOFT_LEFT/RIGHT become rotary scroll
+        private val DYNAVIN_DEFAULT_KEYS = mapOf(
             340 to KeyEvent.KEYCODE_DPAD_CENTER,
             376 to KeyEvent.KEYCODE_DPAD_UP,
             377 to KeyEvent.KEYCODE_DPAD_DOWN,
@@ -164,8 +169,14 @@ class CarKeyBroadcastReceiver : BroadcastReceiver(), CarKeyReceiver {
             "com.eryanet.media.pause" -> handleClick(context, 2005)
             "com.bz.action.phone.pickup" -> handleClick(context, 3001)
             "com.bz.action.phone.hangup" -> handleClick(context, 3002)
-            "dynavin.intent.action.KeyEvent" ->
-                DYNAVIN_KEYS[intent.getIntExtra("keycode", 0)]?.let { handleClick(context, it, SystemClock.uptimeMillis()) }
+            "dynavin.intent.action.KeyEvent" -> {
+                val code = intent.getIntExtra("keycode", 0)
+                if (code <= 0) return
+                val virtual = DYNAVIN_KEY_BASE + code
+                val mapped = App.provide(context).settings.keyCodes.containsValue(virtual)
+                val key = if (mapped) virtual else DYNAVIN_DEFAULT_KEYS[code] ?: virtual
+                handleClick(context, key, SystemClock.uptimeMillis(), virtual)
+            }
         }
     }
 }
