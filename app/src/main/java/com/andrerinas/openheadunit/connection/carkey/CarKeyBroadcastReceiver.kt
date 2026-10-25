@@ -41,8 +41,20 @@ class CarKeyBroadcastReceiver : BroadcastReceiver(), CarKeyReceiver {
             "com.eryanet.media.pause",
             "com.bz.action.phone.pickup", // BZ (Joying etc.)
             "com.bz.action.phone.hangup",
+            "dynavin.intent.action.KeyEvent", // Dynavin (MMI knob / joystick)
             "com.tencent.qqmusiccar.action.MEDIA_BUTTON_INNER_ONKEY",
             "cn.kuwo.kwmusicauto.action.MEDIA_BUTTON"
+        )
+
+        // Dynavin MCU key codes (from com.dnv.dnv_menu Receiver_key) -> AA keys; SOFT_LEFT/RIGHT become rotary scroll
+        private val DYNAVIN_KEYS = mapOf(
+            340 to KeyEvent.KEYCODE_DPAD_CENTER,
+            376 to KeyEvent.KEYCODE_DPAD_UP,
+            377 to KeyEvent.KEYCODE_DPAD_DOWN,
+            378 to KeyEvent.KEYCODE_DPAD_LEFT,
+            379 to KeyEvent.KEYCODE_DPAD_RIGHT,
+            380 to KeyEvent.KEYCODE_SOFT_RIGHT,
+            381 to KeyEvent.KEYCODE_SOFT_LEFT,
         )
     }
 
@@ -151,6 +163,8 @@ class CarKeyBroadcastReceiver : BroadcastReceiver(), CarKeyReceiver {
             "com.eryanet.media.pause" -> handleClick(context, 2005)
             "com.bz.action.phone.pickup" -> handleClick(context, 3001)
             "com.bz.action.phone.hangup" -> handleClick(context, 3002)
+            "dynavin.intent.action.KeyEvent" ->
+                DYNAVIN_KEYS[intent.getIntExtra("keycode", 0)]?.let { handleClick(context, it) }
         }
     }
 }
