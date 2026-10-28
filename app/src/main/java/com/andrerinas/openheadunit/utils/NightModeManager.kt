@@ -14,9 +14,7 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Build
 import android.os.Handler
-import android.os.IBinder
 import android.os.Looper
-import android.os.Parcel
 import android.provider.Settings as SystemSettings
 import androidx.core.content.ContextCompat
 import com.andrerinas.openheadunit.contract.LocationUpdateIntent
@@ -201,7 +199,7 @@ class NightModeManager(
                 ContextCompat.registerReceiver(
                     context,
                     dynavinIllReceiver,
-                    IntentFilter("dynavin.intent.action.ScreenBrightness"),
+                    IntentFilter(DynavinIll.ACTION),
                     ContextCompat.RECEIVER_EXPORTED
                 )
                 isCarSignalObserverRegistered = true
@@ -277,7 +275,7 @@ class NightModeManager(
                 val carMode = try {
                     SystemSettings.System.getInt(context.contentResolver, "car_mode")
                 } catch (_: Exception) { -1 }
-                val dynavinIll = if (carMode < 0) readDynavinIll() else null
+                val dynavinIll = if (carMode < 0) DynavinIll.read() else null
                 if (carMode >= 0) {
                     isNight = carMode != 0
                     AppLog.d("NightModeManager: CAR_SIGNAL car_mode=$carMode isNight=$isNight")
@@ -340,26 +338,6 @@ class NightModeManager(
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
-
-    private fun readDynavinIll(): Boolean? {
-        val data = Parcel.obtain()
-        val reply = Parcel.obtain()
-        return try {
-            val binder = Class.forName("android.os.ServiceManager")
-                .getMethod("getService", String::class.java)
-                .invoke(null, "dynavin_prop") as? IBinder ?: return null
-            data.writeInterfaceToken("android.dynavin.prop.IDynavinPropService")
-            data.writeString("dynavin_mark_mcu_heartbeat_ill")
-            binder.transact(4, data, reply, 0) // RPC_ProviderDnvService_keep_getValue
-            reply.readException()
-            reply.readString()?.toBooleanStrictOrNull()
-        } catch (_: Exception) {
-            null
-        } finally {
-            data.recycle()
-            reply.recycle()
-        }
-    }
 
     private fun readBrightness(): Int {
         // On API 28+ (Android 9+) the brightness slider primarily writes to
