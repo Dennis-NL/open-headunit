@@ -34,6 +34,8 @@ object KeyCode {
         KeyEvent.KEYCODE_HOME,
         KeyEvent.KEYCODE_HEADSETHOOK,
         KeyEvent.KEYCODE_MEDIA_STOP,
+        KeyEvent.KEYCODE_ZOOM_IN, // Map zoom; announced to see whether AA uses it
+        KeyEvent.KEYCODE_ZOOM_OUT,
 
         // Alphabetic keys (A through Z) for text entry and search
         KeyEvent.KEYCODE_A,

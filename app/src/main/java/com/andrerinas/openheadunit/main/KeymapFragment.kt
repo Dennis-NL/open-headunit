@@ -63,6 +63,8 @@ class KeymapFragment : Fragment(), MainActivity.KeyListener {
         KeymapItem(R.string.key_endcall, KeyEvent.KEYCODE_ENDCALL),
         KeymapItem(R.string.key_music, KeyEvent.KEYCODE_MUSIC),
         KeymapItem(R.string.key_nav, 65538),
+        KeymapItem(R.string.key_zoom_in, KeyEvent.KEYCODE_ZOOM_IN),
+        KeymapItem(R.string.key_zoom_out, KeyEvent.KEYCODE_ZOOM_OUT),
         KeymapItem(R.string.key_night, KeyCode.KEY_NIGHT_MODE),
         KeymapItem(R.string.key_enter, KeyEvent.KEYCODE_ENTER),
         KeymapItem(R.string.key_home, KeyEvent.KEYCODE_HOME),
