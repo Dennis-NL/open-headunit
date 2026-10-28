@@ -733,6 +733,12 @@ Open Headunit предоставляется «как есть» без каки
     <string name="settings_tab_basic">Основные</string>
     <string name="settings_tab_advanced">Расширенные</string>
     <string name="settings_search_hint">Поиск настроек</string>
+    <string name="settings_scope_wifi_hidden">Показаны настройки USB. Настройки WiFi скрыты.</string>
+    <string name="settings_scope_usb_hidden">Показаны настройки WiFi. Настройки USB скрыты.</string>
+    <string name="settings_scope_usb_wifi_hidden">Показаны настройки автономного режима. Настройки USB и WiFi скрыты.</string>
+    <string name="settings_scope_change">Изменить</string>
+    <string name="settings_search_clear">Очистить поиск</string>
+    <string name="settings_search_no_results">Нет настроек по запросу «%1$s».</string>
     <string name="connection_mode">Режим подключения</string>
     <string name="connection_kind_usb_cable">USB-кабель (напрямую)</string>
     <string name="connection_kind_usb_wireless_adapter">Беспроводной USB-адаптер</string>
@@ -976,7 +982,7 @@ Open Headunit предоставляется «как есть» без каки
     <string name="zbt_probe_title">Проверить модуль Bluetooth устройства</string>
     <string name="zbt_probe_idle">Нажмите, чтобы запустить</string>
     <string name="zbt_probe_running">Выполняется…</string>
-    <string name="zbt_probe_message">Спрашивает отдельный модуль Bluetooth этого устройства, сможет ли он передавать соединение Android Auto. Примерно за восемь секунд проверяется, отвечает ли модуль вообще, и только если да, то около полутора минут идёт наблюдение. Строка под этой настройкой показывает, что происходит. Больше ничего на устройстве не изменяется.\n\nМодуль работает только с одной программой за раз. Если через него уже идёт соединение, тест сообщит об этом вместо проверки. Чтобы проверить модуль отдельно, сначала выключите настройку выше.\n\n«Разбудить и наблюдать» дополнительно просит модуль переподключиться к телефону для Android Auto. Только эта часть что-то меняет, и перезагрузка устройства отменяет изменение. После проверки экспортируйте журнал и приложите его.</string>
+    <string name="zbt_probe_message">Оба варианта инициализируют модуль Bluetooth перед наблюдением. Это может повлиять на его состояние. «Разбудить и наблюдать» также запрашивает подключение к телефону.\n\nТест уступает доступ, пока OHU использует или проверяет модуль. После теста экспортируйте журнал.</string>
     <string name="zbt_probe_watch_only">Только наблюдать</string>
     <string name="zbt_probe_wake_and_watch">Разбудить и наблюдать</string>
     <string name="external_bt_blink_transport">Подключаться через внешний модуль Bluetooth FYT</string>
@@ -1403,8 +1409,12 @@ Open Headunit предоставляется «как есть» без каки
     <string name="home_favorites_full">Все четыре места заняты. Удерживайте одно из приложений на главном экране, чтобы заменить его.</string>
     <string name="home_choose_favorite_app">Выберите приложение или ярлык</string>
     <string name="home_shortcut_badge">Ярлык</string>
-    <string name="home_show_favorite_apps">Приложения и виджеты на главном экране</string>
-    <string name="home_show_favorite_apps_description">Ваши избранные приложения и виджеты под главной кнопкой, когда Open Headunit является вашим лаунчером</string>
+    <string name="home_show_favorite_apps">Избранные приложения на главном экране</string>
+    <string name="home_show_favorite_apps_description">Ваши избранные приложения под главной кнопкой, когда Open Headunit является вашим лаунчером</string>
+    <string name="home_show_widgets">Виджеты на главном экране</string>
+    <string name="home_show_widgets_description">Ваши виджеты, их страницы и плитка «Добавить виджет», когда Open Headunit является вашим лаунчером</string>
+    <string name="home_surface_opacity">Прозрачность панелей</string>
+    <string name="home_surface_opacity_description">Уменьшите значение, чтобы фоновое изображение проступало сквозь панели и кнопки главного экрана.</string>
     <string name="home_show_clock">Дата и время на главном экране</string>
     <string name="home_show_clock_description">Время и сегодняшняя дата в верхней части главной кнопки</string>
     <string name="home_show_speed">Скорость по GPS на главном экране</string>
@@ -1440,4 +1450,16 @@ Open Headunit предоставляется «как есть» без каки
     <string name="audio_settings_reconnect">Настройки звука сохранены. Чтобы применить их, переподключите Android Auto.</string>
     <string name="native_aa_candidate_android_radio_description">Использовать Bluetooth Android вместо автоматического выбора Bluetooth-модуля головного устройства. Для автоматического выбора оставьте выключенным. Если включена опция подключения через модуль, сначала выключите её.</string>
     <string name="external_bt_candidate_transport_description">Принудительно подключаться через Bluetooth-модуль головного устройства вместо автоматического выбора. Нужна совместимая служба модуля. Оставьте выключенным, чтобы использовать Bluetooth Android, если служба не отвечает; включение блокирует этот запасной путь.</string>
+    <string name="audio_matching_mode">Временная коррекция музыки</string>
+    <string name="audio_matching_ohu">OHU</string>
+    <string name="audio_matching_wsola">WSOLA</string>
+    <string name="audio_matching_phase_vocoder">Phase Vocoder</string>
+    <string name="audio_matching_phase_vocoder_short">Phase Vocoder Short</string>
+    <string name="audio_matching_phase_gradient">Phase Gradient</string>
+    <string name="audio_matching_ohu_hint">По умолчанию</string>
+    <string name="audio_matching_wsola_hint">Лёгкий</string>
+    <string name="audio_matching_phase_vocoder_hint">Сбалансированный</string>
+    <string name="audio_matching_phase_vocoder_short_hint">Низкая задержка</string>
+    <string name="audio_matching_phase_gradient_hint">Медленное воспроизведение</string>
+    <string name="audio_matching_description">OHU остаётся вариантом по умолчанию. WSOLA совмещает перекрывающиеся волны; Phase Vocoder корректирует спектральные фазы. Short использует более короткое окно анализа. Phase Gradient восстанавливает фазы интегрированием фазовых градиентов. Эти независимые реализации добавляют задержку обработки; названия не являются рейтингом качества звука.\n\nНативные методы: музыка PCM. Навигация, голосовые ответы, системные звуки и AAC используют OHU.\nПереподключитесь для применения. Настройки удалённых движков сбрасываются на OHU.</string>
 </resources>

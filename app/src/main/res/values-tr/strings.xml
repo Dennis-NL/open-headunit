@@ -730,6 +730,12 @@
     <string name="settings_tab_basic">Temel</string>
     <string name="settings_tab_advanced">Gelişmiş</string>
     <string name="settings_search_hint">Ayarlarda ara</string>
+    <string name="settings_scope_wifi_hidden">USB ayarları gösteriliyor. WiFi ayarları gizli.</string>
+    <string name="settings_scope_usb_hidden">WiFi ayarları gösteriliyor. USB ayarları gizli.</string>
+    <string name="settings_scope_usb_wifi_hidden">Dahili Mod ayarları gösteriliyor. USB ve WiFi ayarları gizli.</string>
+    <string name="settings_scope_change">Değiştir</string>
+    <string name="settings_search_clear">Aramayı temizle</string>
+    <string name="settings_search_no_results">\"%1$s\" ile eşleşen ayar yok.</string>
     <string name="connection_mode">Bağlantı modu</string>
     <string name="connection_kind_usb_cable">USB kablosu (doğrudan)</string>
     <string name="connection_kind_usb_wireless_adapter">USB kablosuz adaptör</string>
@@ -972,7 +978,7 @@
     <string name="zbt_probe_title">Ana ünitenin Bluetooth modülünü test et</string>
     <string name="zbt_probe_idle">Çalıştırmak için dokunun</string>
     <string name="zbt_probe_running">Çalışıyor…</string>
-    <string name="zbt_probe_message">Bu ünitenin ayrı Bluetooth çipine bir Android Auto bağlantısı taşıyıp taşıyamayacağını sorar. Önce yaklaşık sekiz saniyede çipin yanıt verip vermediğini kontrol eder. Yanıt veriyorsa yaklaşık bir buçuk dakika izler. Bu ayarın altındaki satır ne olduğunu gösterir. Ünitede başka hiçbir şeye dokunulmaz.\n\nÇip aynı anda tek bir programla konuşur. Üzerinden zaten bir bağlantı geçiyorsa test, çalışmak yerine bunu bildirir. Tek başına denemek için önce yukarıdaki ayarı kapatın.\n\nUyandır ve izle, çipten Android Auto için telefonunuza yeniden bağlanmasını da ister. Bir şeyi değiştiren tek kısım budur ve üniteyi yeniden başlatmak bunu geri alır. Lütfen sonrasında günlüğü dışa aktarıp ekleyin.</string>
+    <string name="zbt_probe_message">Her iki seçenek de izlemeden önce Bluetooth modülünü başlatır. Bu, Bluetooth durumunu etkileyebilir. Uyandır ve izle ayrıca telefona bağlantı ister.\n\nOHU modülü kullanırken veya kontrol ederken test önceliği ona verir. Testten sonra günlüğü dışa aktarın.</string>
     <string name="zbt_probe_watch_only">Yalnızca izle</string>
     <string name="zbt_probe_wake_and_watch">Uyandır ve izle</string>
     <string name="external_bt_blink_transport">FYT harici Bluetooth modülü üzerinden bağlan</string>
@@ -1399,8 +1405,12 @@
     <string name="home_favorites_full">Dört favorinin hepsi dolu. Değiştirmek için ana ekranda birine basılı tut.</string>
     <string name="home_choose_favorite_app">Bir uygulama veya kısayol seç</string>
     <string name="home_shortcut_badge">Kısayol</string>
-    <string name="home_show_favorite_apps">Ana ekranda uygulamalar ve widget\'lar</string>
-    <string name="home_show_favorite_apps_description">Open Headunit başlatıcınız olduğunda, ana düğmenin altında favori uygulamalarınız ve widget\'larınız</string>
+    <string name="home_show_favorite_apps">Ana ekranda favori uygulamalar</string>
+    <string name="home_show_favorite_apps_description">Open Headunit başlatıcınız olduğunda, ana düğmenin altında favori uygulamalarınız</string>
+    <string name="home_show_widgets">Ana ekranda widget\'lar</string>
+    <string name="home_show_widgets_description">Open Headunit başlatıcınız olduğunda, widget\'larınız, sayfaları ve Widget ekle kutucuğu</string>
+    <string name="home_surface_opacity">Panel opaklığı</string>
+    <string name="home_surface_opacity_description">Arka plan resminizin ana ekrandaki panellerden ve düğmelerden görünmesi için değeri düşürün.</string>
     <string name="home_show_clock">Ana ekranda tarih ve saat</string>
     <string name="home_show_clock_description">Saat ve bugünün tarihi, ana düğmenin üstünde</string>
     <string name="home_show_speed">Ana ekranda GPS hızı</string>
@@ -1436,4 +1446,16 @@
     <string name="audio_settings_reconnect">Ses ayarları kaydedildi. Uygulamak için Android Auto\'yu yeniden bağlayın.</string>
     <string name="native_aa_candidate_android_radio_description">Ünitenin Bluetooth modülünü otomatik seçmek yerine Android Bluetooth kullanın. Otomatik seçim için kapalı bırakın. Modül üzerinden bağlantı seçeneği açıksa önce onu kapatın.</string>
     <string name="external_bt_candidate_transport_description">Otomatik seçim yerine ünitenin Bluetooth modülü üzerinden bağlantıyı zorlayın. Uyumlu bir modül hizmeti gerektirir. Hizmet yanıt vermediğinde Android Bluetooth kullanılabilmesi için kapalı bırakın; açılması bu yedek yolu engeller.</string>
+    <string name="audio_matching_mode">Müzik zaman düzeltmesi</string>
+    <string name="audio_matching_ohu">OHU</string>
+    <string name="audio_matching_wsola">WSOLA</string>
+    <string name="audio_matching_phase_vocoder">Phase Vocoder</string>
+    <string name="audio_matching_phase_vocoder_short">Phase Vocoder Short</string>
+    <string name="audio_matching_phase_gradient">Phase Gradient</string>
+    <string name="audio_matching_ohu_hint">Varsayılan</string>
+    <string name="audio_matching_wsola_hint">Hafif</string>
+    <string name="audio_matching_phase_vocoder_hint">Dengeli</string>
+    <string name="audio_matching_phase_vocoder_short_hint">Düşük gecikme</string>
+    <string name="audio_matching_phase_gradient_hint">Yavaş oynatma</string>
+    <string name="audio_matching_description">OHU varsayılan olarak kalır. WSOLA örtüşen dalga biçimlerini hizalar; Phase Vocoder spektral fazları ayarlar. Short daha kısa analiz penceresi kullanır. Phase Gradient faz gradyanlarını entegre ederek fazları yeniden oluşturur. Bu bağımsız uygulamalar işleme gecikmesi ekler; adlar ses kalitesini sıralamaz.\n\nYerel yöntemler: PCM müzik. Navigasyon, sesli yanıtlar, sistem sesleri ve AAC OHU kullanır.\nUygulamak için yeniden bağlanın. Kaldırılan motorların ayarları OHU olarak sıfırlanır.</string>
 </resources>

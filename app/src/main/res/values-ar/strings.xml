@@ -737,6 +737,12 @@
     <string name="settings_tab_basic">أساسي</string>
     <string name="settings_tab_advanced">متقدم</string>
     <string name="settings_search_hint">البحث في الإعدادات</string>
+    <string name="settings_scope_wifi_hidden">عرض إعدادات USB. إعدادات WiFi مخفية.</string>
+    <string name="settings_scope_usb_hidden">عرض إعدادات WiFi. إعدادات USB مخفية.</string>
+    <string name="settings_scope_usb_wifi_hidden">عرض إعدادات الوضع الذاتي. إعدادات USB وWiFi مخفية.</string>
+    <string name="settings_scope_change">تغيير</string>
+    <string name="settings_search_clear">مسح البحث</string>
+    <string name="settings_search_no_results">لا توجد إعدادات تطابق \"%1$s\".</string>
     <string name="connection_mode">وضع الاتصال</string>
     <string name="connection_kind_usb_cable">كابل USB (مباشر)</string>
     <string name="connection_kind_usb_wireless_adapter">محول USB لاسلكي</string>
@@ -979,7 +985,7 @@
     <string name="zbt_probe_title">اختبار وحدة البلوتوث في الجهاز</string>
     <string name="zbt_probe_idle">انقر للتشغيل</string>
     <string name="zbt_probe_running">جارٍ التشغيل…</string>
-    <string name="zbt_probe_message">يسأل شريحة البلوتوث المنفصلة في هذا الجهاز عمّا إذا كانت تستطيع حمل اتصال Android Auto. يتحقق خلال ثماني ثوانٍ تقريبًا من أن الشريحة تستجيب أصلًا، وعندها فقط يراقب نحو دقيقة ونصف. يعرض السطر أسفل هذا الإعداد ما يجري، ولا يُمس أي شيء آخر في الجهاز.\n\nتتحدث الشريحة مع برنامج واحد في كل مرة. فإذا كان هناك اتصال يمر عبرها بالفعل، يذكر الاختبار ذلك بدل أن يختبر. أطفئ الإعداد أعلاه أولًا لاختبارها وحدها.\n\nكما يطلب \"الإيقاظ والمراقبة\" من الشريحة إعادة الاتصال بهاتفك من أجل Android Auto. هذا هو الجزء الوحيد الذي يغيّر شيئًا، وإعادة تشغيل الجهاز تلغيه. يرجى تصدير السجل بعد ذلك وإرفاقه.</string>
+    <string name="zbt_probe_message">يهيئ كلا الخيارين وحدة Bluetooth قبل مراقبتها، وقد يؤثر ذلك في حالتها. يطلب خيار الإيقاظ والمراقبة أيضًا الاتصال بالهاتف.\n\nيُفسح الاختبار المجال عندما يستخدم OHU الوحدة أو يفحصها. صدّر السجل بعد الاختبار.</string>
     <string name="zbt_probe_watch_only">المراقبة فقط</string>
     <string name="zbt_probe_wake_and_watch">الإيقاظ والمراقبة</string>
     <string name="external_bt_blink_transport">الاتصال عبر وحدة البلوتوث الخارجية في FYT</string>
@@ -1407,8 +1413,12 @@
     <string name="home_favorites_full">المفضلات الأربع ممتلئة. اضغط مطولًا على أحدها في الشاشة الرئيسية لتغييره.</string>
     <string name="home_choose_favorite_app">اختر تطبيقًا أو اختصارًا</string>
     <string name="home_shortcut_badge">اختصار</string>
-    <string name="home_show_favorite_apps">التطبيقات والأدوات على الشاشة الرئيسية</string>
-    <string name="home_show_favorite_apps_description">تطبيقاتك المفضلة وأدواتك أسفل الزر الرئيسي، عندما يكون Open Headunit مشغّل الشاشة الرئيسية لديك</string>
+    <string name="home_show_favorite_apps">التطبيقات المفضلة على الشاشة الرئيسية</string>
+    <string name="home_show_favorite_apps_description">تطبيقاتك المفضلة أسفل الزر الرئيسي، عندما يكون Open Headunit مشغّل الشاشة الرئيسية لديك</string>
+    <string name="home_show_widgets">الأدوات على الشاشة الرئيسية</string>
+    <string name="home_show_widgets_description">أدواتك وصفحاتها وبلاطة «إضافة أداة»، عندما يكون Open Headunit مشغّل الشاشة الرئيسية لديك</string>
+    <string name="home_surface_opacity">شفافية اللوحات</string>
+    <string name="home_surface_opacity_description">خفّض القيمة لتظهر صورة الخلفية عبر لوحات الشاشة الرئيسية وأزرارها.</string>
     <string name="home_show_clock">التاريخ والوقت على الشاشة الرئيسية</string>
     <string name="home_show_clock_description">الوقت وتاريخ اليوم في أعلى الزر الرئيسي</string>
     <string name="home_show_speed">سرعة GPS على الشاشة الرئيسية</string>
@@ -1444,4 +1454,16 @@
     <string name="audio_settings_reconnect">تم حفظ إعدادات الصوت. أعد توصيل Android Auto لتطبيقها.</string>
     <string name="native_aa_candidate_android_radio_description">استخدم Bluetooth في Android بدلاً من اختيار وحدة Bluetooth في الجهاز تلقائياً. اترك الخيار معطلاً للاختيار التلقائي. إذا كان أي خيار للاتصال عبر الوحدة مفعلاً، فعطّله أولاً.</string>
     <string name="external_bt_candidate_transport_description">افرض الاتصال عبر وحدة Bluetooth في الجهاز بدلاً من الاختيار التلقائي. يتطلب ذلك خدمة وحدة متوافقة. اترك الخيار معطلاً للسماح باستخدام Bluetooth في Android عند عدم استجابة الخدمة؛ تفعيله يمنع هذا البديل.</string>
+    <string name="audio_matching_mode">تصحيح توقيت الموسيقى</string>
+    <string name="audio_matching_ohu">OHU</string>
+    <string name="audio_matching_wsola">WSOLA</string>
+    <string name="audio_matching_phase_vocoder">Phase Vocoder</string>
+    <string name="audio_matching_phase_vocoder_short">Phase Vocoder Short</string>
+    <string name="audio_matching_phase_gradient">Phase Gradient</string>
+    <string name="audio_matching_ohu_hint">افتراضي</string>
+    <string name="audio_matching_wsola_hint">خفيف</string>
+    <string name="audio_matching_phase_vocoder_hint">متوازن</string>
+    <string name="audio_matching_phase_vocoder_short_hint">تأخر منخفض</string>
+    <string name="audio_matching_phase_gradient_hint">تشغيل بطيء</string>
+    <string name="audio_matching_description">يبقى OHU الخيار الافتراضي. يحاذي WSOLA الموجات المتداخلة ويضبط Phase Vocoder الأطوار الطيفية. يستخدم Short نافذة تحليل أقصر. يعيد Phase Gradient بناء الأطوار بتكامل تدرجات الطور. تضيف هذه التطبيقات المستقلة تأخرًا في المعالجة؛ ولا تمثل أسماؤها ترتيبًا لجودة الصوت.\n\nالطرق الأصلية: موسيقى PCM. تستخدم إرشادات الملاحة والردود الصوتية وأصوات النظام وAAC OHU.\nأعد الاتصال للتطبيق. تعود إعدادات المحركات المحذوفة إلى OHU.</string>
 </resources>

@@ -735,6 +735,12 @@
     <string name="settings_tab_basic">Základní</string>
     <string name="settings_tab_advanced">Pokročilé</string>
     <string name="settings_search_hint">Hledat v nastavení</string>
+    <string name="settings_scope_wifi_hidden">Zobrazeno nastavení USB. Nastavení WiFi je skryté.</string>
+    <string name="settings_scope_usb_hidden">Zobrazeno nastavení WiFi. Nastavení USB je skryté.</string>
+    <string name="settings_scope_usb_wifi_hidden">Zobrazeno nastavení Self Mode. Nastavení USB a WiFi je skryté.</string>
+    <string name="settings_scope_change">Změnit</string>
+    <string name="settings_search_clear">Vymazat hledání</string>
+    <string name="settings_search_no_results">Žádné nastavení neodpovídá „%1$s“.</string>
     <string name="connection_mode">Režim připojení</string>
     <string name="connection_kind_usb_cable">USB kabel (přímé připojení)</string>
     <string name="connection_kind_usb_wireless_adapter">Bezdrátový USB adaptér</string>
@@ -979,7 +985,7 @@
     <string name="zbt_probe_title">Otestovat modul Bluetooth jednotky</string>
     <string name="zbt_probe_idle">Klepnutím spustíte</string>
     <string name="zbt_probe_running">Probíhá…</string>
-    <string name="zbt_probe_message">Zeptá se samostatného čipu Bluetooth této jednotky, zda dokáže přenášet spojení Android Auto. Zhruba za osm sekund ověří, že čip vůbec odpovídá, a jen pokud odpoví, sleduje ho asi půldruhé minuty. Řádek pod tímto nastavením ukazuje, co se právě děje. Na jednotce se nic jiného nemění.\n\nČip komunikuje vždy jen s jedním programem. Pokud přes něj už běží spojení, test to oznámí a netestuje. Chcete-li čip otestovat samostatně, nejdřív vypněte nastavení výše.\n\nProbudit a sledovat navíc požádá čip, aby se kvůli Android Auto znovu spojil s telefonem. Jen tato část něco mění a restart jednotky ji vrátí zpět. Poté prosím exportujte protokol a přiložte jej.</string>
+    <string name="zbt_probe_message">Obě možnosti inicializují modul Bluetooth před sledováním. To může ovlivnit jeho stav. Probudit a sledovat navíc požádá o připojení k telefonu.\n\nTest ustoupí, pokud OHU modul používá nebo kontroluje. Po testu exportujte protokol.</string>
     <string name="zbt_probe_watch_only">Jen sledovat</string>
     <string name="zbt_probe_wake_and_watch">Probudit a sledovat</string>
     <string name="external_bt_blink_transport">Připojit přes externí modul Bluetooth FYT</string>
@@ -1406,8 +1412,12 @@
     <string name="home_favorites_full">Všechny čtyři oblíbené jsou obsazené. Podržte jednu na domovské obrazovce a změňte ji.</string>
     <string name="home_choose_favorite_app">Vyberte aplikaci nebo zkratku</string>
     <string name="home_shortcut_badge">Zkratka</string>
-    <string name="home_show_favorite_apps">Aplikace a widgety na domovské obrazovce</string>
-    <string name="home_show_favorite_apps_description">Vaše oblíbené aplikace a widgety pod hlavním tlačítkem, když je Open Headunit váš spouštěč</string>
+    <string name="home_show_favorite_apps">Oblíbené aplikace na domovské obrazovce</string>
+    <string name="home_show_favorite_apps_description">Vaše oblíbené aplikace pod hlavním tlačítkem, když je Open Headunit váš spouštěč</string>
+    <string name="home_show_widgets">Widgety na domovské obrazovce</string>
+    <string name="home_show_widgets_description">Vaše widgety, jejich stránky a dlaždice Přidat widget, když je Open Headunit váš spouštěč</string>
+    <string name="home_surface_opacity">Neprůhlednost panelů</string>
+    <string name="home_surface_opacity_description">Snížením nechte obrázek na pozadí prosvítat přes panely a tlačítka domovské obrazovky.</string>
     <string name="home_show_clock">Datum a čas na domovské obrazovce</string>
     <string name="home_show_clock_description">Čas a dnešní datum nahoře na hlavním tlačítku</string>
     <string name="home_show_speed">Rychlost GPS na domovské obrazovce</string>
@@ -1443,4 +1453,16 @@
     <string name="audio_settings_reconnect">Nastavení zvuku uloženo. Pro jeho použití znovu připojte Android Auto.</string>
     <string name="native_aa_candidate_android_radio_description">Použít Bluetooth Androidu místo automatického výběru modulu Bluetooth jednotky. Pro automatický výběr ponechte vypnuté. Pokud je zapnutá některá možnost připojení přes modul, nejprve ji vypněte.</string>
     <string name="external_bt_candidate_transport_description">Vynutit připojení přes modul Bluetooth jednotky místo automatického výběru. Vyžaduje kompatibilní službu modulu. Ponechte vypnuté, aby se při neodpovídající službě mohlo použít Bluetooth Androidu; zapnutí tuto náhradní cestu zakáže.</string>
+    <string name="audio_matching_mode">Časová korekce hudby</string>
+    <string name="audio_matching_ohu">OHU</string>
+    <string name="audio_matching_wsola">WSOLA</string>
+    <string name="audio_matching_phase_vocoder">Phase Vocoder</string>
+    <string name="audio_matching_phase_vocoder_short">Phase Vocoder Short</string>
+    <string name="audio_matching_phase_gradient">Phase Gradient</string>
+    <string name="audio_matching_ohu_hint">Výchozí</string>
+    <string name="audio_matching_wsola_hint">Nenáročný</string>
+    <string name="audio_matching_phase_vocoder_hint">Vyvážený</string>
+    <string name="audio_matching_phase_vocoder_short_hint">Nízká latence</string>
+    <string name="audio_matching_phase_gradient_hint">Pomalé přehrávání</string>
+    <string name="audio_matching_description">OHU zůstává výchozí. WSOLA zarovnává překrývající se průběhy; Phase Vocoder upravuje spektrální fáze. Short používá kratší analytické okno. Phase Gradient rekonstruuje fáze integrací fázových gradientů. Tyto nezávislé implementace přidávají zpoždění zpracování; názvy nehodnotí kvalitu zvuku.\n\nNativní metody: hudba PCM. Navigace, hlasové odpovědi, systémové zvuky a AAC používají OHU.\nPro použití se znovu připojte. Nastavení odstraněných enginů se vrátí na OHU.</string>
 </resources>
