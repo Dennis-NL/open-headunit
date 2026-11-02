@@ -11,7 +11,6 @@ import androidx.core.content.IntentCompat
 import com.andrerinas.openheadunit.App
 import com.andrerinas.openheadunit.connection.CommManager
 import com.andrerinas.openheadunit.contract.KeyIntent
-import com.andrerinas.openheadunit.input.DynavinPanelKey
 import com.andrerinas.openheadunit.utils.AppLog
 
 /**
@@ -43,7 +42,7 @@ class CarKeyBroadcastReceiver : BroadcastReceiver(), CarKeyReceiver {
             "com.eryanet.media.pause",
             "com.bz.action.phone.pickup", // BZ (Joying etc.)
             "com.bz.action.phone.hangup",
-            DynavinPanelKey.ACTION, // Dynavin (MMI knob / keys)
+            "dynavin.intent.action.KeyEvent", // Dynavin (MMI knob / keys)
             "com.tencent.qqmusiccar.action.MEDIA_BUTTON_INNER_ONKEY",
             "cn.kuwo.kwmusicauto.action.MEDIA_BUTTON"
         )
@@ -154,13 +153,9 @@ class CarKeyBroadcastReceiver : BroadcastReceiver(), CarKeyReceiver {
             "com.eryanet.media.pause" -> handleClick(context, 2005)
             "com.bz.action.phone.pickup" -> handleClick(context, 3001)
             "com.bz.action.phone.hangup" -> handleClick(context, 3002)
-            DynavinPanelKey.ACTION -> {
-                val code = intent.getIntExtra(DynavinPanelKey.EXTRA_KEYCODE, 0)
-                if (code <= 0) return
-                if (DynavinPanelKey.mcuKeysActive && code in DynavinPanelKey.MCU_KEYS.values) return
-                val key = DynavinPanelKey.keyFor(App.provide(context).settings.keyCodes, code)
-                handleClick(context, key, SystemClock.uptimeMillis(), DynavinPanelKey.toKeyCode(code))
-            }
+            // Sent on release only; every broadcast is a separate press, so stamp it to keep fast knob turns apart.
+            "dynavin.intent.action.KeyEvent" -> intent.getIntExtra("keycode", 0).takeIf { it > 0 }
+                ?.let { handleClick(context, 5000 + it, SystemClock.uptimeMillis()) }
         }
     }
 }

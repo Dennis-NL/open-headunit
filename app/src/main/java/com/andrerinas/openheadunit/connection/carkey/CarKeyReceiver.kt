@@ -19,7 +19,6 @@ interface CarKeyReceiver {
                 CarKeyBroadcastReceiver(),
                 CarBydReceiver(),
                 CarFYTReceiver(),
-                CarDynavinMcuReceiver(),
             )
         }
     }
@@ -45,7 +44,7 @@ interface CarKeyReceiver {
 
     /** Single key press or release — broadcasts for learning and projection handling. */
 
-    private fun handleKey(context: Context, commManager: CommManager, keyCode: Int, isDown: Boolean, downTime: Long? = null, learnCode: Int = keyCode) {
+    private fun handleKey(context: Context, commManager: CommManager, keyCode: Int, isDown: Boolean, downTime: Long? = null) {
         AppLog.d("CarKeyReceiver: Broadcasting key event: code=$keyCode, isDown=$isDown")
         context.sendBroadcast(
             Intent(KeyIntent.action).apply {
@@ -53,7 +52,7 @@ interface CarKeyReceiver {
                 putExtra(
                     KeyIntent.extraEvent,
                     KeyEvent(
-                        if (isDown) KeyEvent.ACTION_DOWN else KeyEvent.ACTION_UP, learnCode,
+                        if (isDown) KeyEvent.ACTION_DOWN else KeyEvent.ACTION_UP, keyCode,
                     ),
                 )
             },
@@ -66,17 +65,13 @@ interface CarKeyReceiver {
     }
 
     /** Full click (DOWN + UP) — broadcasts both events for learning AND sends to AA. */
-    private fun handleClick(context: Context, commManager: CommManager, keyCode: Int, downTime: Long?, learnCode: Int) {
-        handleKey(context, commManager, keyCode, true, downTime, learnCode)
-        handleKey(context, commManager, keyCode, false, downTime, learnCode)
+    private fun handleClick(context: Context, commManager: CommManager, keyCode: Int, downTime: Long?) {
+        handleKey(context, commManager, keyCode, true, downTime)
+        handleKey(context, commManager, keyCode, false, downTime)
     }
 
-    /**
-     * [downTime] identifies the press, so fast distinct clicks are not debounced as duplicates.
-     * [learnCode] is what key learning sees, when that differs from the key sent to AA.
-     */
-    fun handleClick(context: Context, keyCode: Int, downTime: Long? = null, learnCode: Int = keyCode) {
-        handleClick(context, App.provide(context).commManager, keyCode, downTime, learnCode)
+    fun handleClick(context: Context, keyCode: Int, downTime: Long? = null) {
+        handleClick(context, App.provide(context).commManager, keyCode, downTime)
     }
 
     fun toggleVoiceAssistant(context: Context) {

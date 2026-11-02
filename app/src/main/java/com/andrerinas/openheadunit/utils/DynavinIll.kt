@@ -4,7 +4,7 @@ import android.os.IBinder
 import android.os.Parcel
 
 /**
- * Headlight (ILL) state on Dynavin head units, for the "car signal" night mode and app theme where
+ * Headlight (ILL) state on Dynavin head units, for the "car signal" night mode where
  * Settings.System car_mode does not exist. The state lives in the dynavin_prop service (no permission
  * check); every change is announced by the panel-brightness broadcast [ACTION].
  */
