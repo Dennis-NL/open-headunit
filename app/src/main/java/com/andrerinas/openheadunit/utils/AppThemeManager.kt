@@ -220,8 +220,8 @@ class AppThemeManager(
                 } catch (_: Exception) { -1 }
                 val dynavinIll = if (carMode < 0) DynavinIll.read() else null
                 if (carMode >= 0) {
-                    isNight = carMode != 0
-                    AppLog.d("AppThemeManager: CAR_SIGNAL car_mode=$carMode isNight=$isNight")
+                    isNight = settings.resolveCarSignalNight(carMode)
+                    AppLog.d("AppThemeManager: CAR_SIGNAL car_mode=$carMode invert=${settings.carSignalInvert} isNight=$isNight")
                 } else if (dynavinIll != null) {
                     isNight = dynavinIll
                     AppLog.d("AppThemeManager: CAR_SIGNAL dynavin ill=$dynavinIll")
