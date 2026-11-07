@@ -70,6 +70,13 @@ class NightModeManager(
         }
     }
 
+    // Dynavin units: ILL changes are announced by the panel-brightness broadcast; the state itself is read from dynavin_prop.
+    private val dynavinIllReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            update(debounce = false)
+        }
+    }
+
     private val systemThemeCallbacks = object : ComponentCallbacks {
         override fun onConfigurationChanged(newConfig: Configuration) {
             update(debounce = false)
@@ -122,6 +129,7 @@ class NightModeManager(
         }
         if (isCarSignalObserverRegistered) {
             context.contentResolver.unregisterContentObserver(carSignalObserver)
+            try { context.unregisterReceiver(dynavinIllReceiver) } catch (e: Exception) {}
             isCarSignalObserverRegistered = false
         }
         if (isSystemCallbacksRegistered) {
@@ -188,11 +196,18 @@ class NightModeManager(
                     false,
                     carSignalObserver
                 )
+                ContextCompat.registerReceiver(
+                    context,
+                    dynavinIllReceiver,
+                    IntentFilter(DynavinIll.ACTION),
+                    ContextCompat.RECEIVER_EXPORTED
+                )
                 isCarSignalObserverRegistered = true
             }
         } else {
             if (isCarSignalObserverRegistered) {
                 context.contentResolver.unregisterContentObserver(carSignalObserver)
+                try { context.unregisterReceiver(dynavinIllReceiver) } catch (e: Exception) {}
                 isCarSignalObserverRegistered = false
             }
         }
@@ -260,9 +275,13 @@ class NightModeManager(
                 val carMode = try {
                     SystemSettings.System.getInt(context.contentResolver, "car_mode")
                 } catch (_: Exception) { -1 }
+                val dynavinIll = if (carMode < 0) DynavinIll.read() else null
                 if (carMode >= 0) {
                     isNight = settings.resolveCarSignalNight(carMode)
                     AppLog.d("NightModeManager: CAR_SIGNAL car_mode=$carMode invert=${settings.carSignalInvert} isNight=$isNight")
+                } else if (dynavinIll != null) {
+                    isNight = dynavinIll
+                    AppLog.d("NightModeManager: CAR_SIGNAL dynavin ill=$dynavinIll")
                 } else {
                     AppLog.w("NightModeManager: CAR_SIGNAL key 'car_mode' not present; keeping previous state")
                     isNight = lastEmittedValue ?: false
