@@ -20,6 +20,7 @@ import com.andrerinas.openheadunit.App
 import com.andrerinas.openheadunit.R
 import com.andrerinas.openheadunit.contract.KeyIntent
 import com.andrerinas.openheadunit.input.BydPanelKey
+import com.andrerinas.openheadunit.input.DynavinPanelKey
 import com.andrerinas.openheadunit.input.KeyCode
 import com.andrerinas.openheadunit.utils.AppLog
 import com.andrerinas.openheadunit.utils.IntentFilters
@@ -249,6 +250,7 @@ class KeymapFragment : Fragment(), MainActivity.KeyListener {
      */
     private fun physicalKeyName(keyCode: Int): String {
         BydPanelKey.label(keyCode)?.let { return it }
+        DynavinPanelKey.label(keyCode)?.let { return it }
         return try {
             KeyEvent.keyCodeToString(keyCode).replace("KEYCODE_", "")
         } catch (e: Exception) {

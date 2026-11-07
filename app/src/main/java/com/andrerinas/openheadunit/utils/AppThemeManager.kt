@@ -62,6 +62,12 @@ class AppThemeManager(
         }
     }
 
+    private val dynavinIllReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            update(debounce = false)
+        }
+    }
+
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == LocationUpdateIntent.action) {
@@ -102,6 +108,7 @@ class AppThemeManager(
         }
         if (isCarSignalObserverRegistered) {
             context.contentResolver.unregisterContentObserver(carSignalObserver)
+            try { context.unregisterReceiver(dynavinIllReceiver) } catch (e: Exception) {}
             isCarSignalObserverRegistered = false
         }
         handler.removeCallbacks(debounceRunnable)
@@ -149,11 +156,15 @@ class AppThemeManager(
                     SystemSettings.System.getUriFor("car_mode"),
                     false, carSignalObserver
                 )
+                ContextCompat.registerReceiver(
+                    context, dynavinIllReceiver, IntentFilter(DynavinIll.ACTION), ContextCompat.RECEIVER_EXPORTED
+                )
                 isCarSignalObserverRegistered = true
             }
         } else {
             if (isCarSignalObserverRegistered) {
                 context.contentResolver.unregisterContentObserver(carSignalObserver)
+                try { context.unregisterReceiver(dynavinIllReceiver) } catch (e: Exception) {}
                 isCarSignalObserverRegistered = false
             }
         }
@@ -207,9 +218,13 @@ class AppThemeManager(
                 val carMode = try {
                     SystemSettings.System.getInt(context.contentResolver, "car_mode")
                 } catch (_: Exception) { -1 }
+                val dynavinIll = if (carMode < 0) DynavinIll.read() else null
                 if (carMode >= 0) {
                     isNight = carMode != 0
                     AppLog.d("AppThemeManager: CAR_SIGNAL car_mode=$carMode isNight=$isNight")
+                } else if (dynavinIll != null) {
+                    isNight = dynavinIll
+                    AppLog.d("AppThemeManager: CAR_SIGNAL dynavin ill=$dynavinIll")
                 } else {
                     AppLog.w("AppThemeManager: CAR_SIGNAL key 'car_mode' not present; treating as day")
                     isNight = lastEmittedNight ?: false
