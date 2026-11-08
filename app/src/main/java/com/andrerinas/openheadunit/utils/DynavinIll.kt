@@ -13,7 +13,12 @@ object DynavinIll {
     const val ACTION = "dynavin.intent.action.ScreenBrightness"
 
     /** True/false, or null when this is not a Dynavin unit. */
-    fun read(): Boolean? {
+    fun read(): Boolean? = keepProp("dynavin_mark_mcu_heartbeat_ill")
+
+    /** The original car (MMI) picture is on screen; the panel keys then belong to the car, not to us. */
+    fun carScreen(): Boolean = keepProp("dynavin_mark_mcu_heartbeat_lvdsInCar") == true
+
+    private fun keepProp(key: String): Boolean? {
         val data = Parcel.obtain()
         val reply = Parcel.obtain()
         return try {
@@ -21,7 +26,7 @@ object DynavinIll {
                 .getMethod("getService", String::class.java)
                 .invoke(null, "dynavin_prop") as? IBinder ?: return null
             data.writeInterfaceToken("android.dynavin.prop.IDynavinPropService")
-            data.writeString("dynavin_mark_mcu_heartbeat_ill")
+            data.writeString(key)
             binder.transact(4, data, reply, 0) // RPC_ProviderDnvService_keep_getValue
             reply.readException()
             reply.readString()?.toBooleanStrictOrNull()

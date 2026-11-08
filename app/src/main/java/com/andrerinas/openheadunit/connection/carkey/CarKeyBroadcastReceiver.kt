@@ -13,6 +13,7 @@ import com.andrerinas.openheadunit.connection.CommManager
 import com.andrerinas.openheadunit.contract.KeyIntent
 import com.andrerinas.openheadunit.input.DynavinPanelKey
 import com.andrerinas.openheadunit.utils.AppLog
+import com.andrerinas.openheadunit.utils.DynavinIll
 
 /**
  * A comprehensive receiver for steering wheel and hardware buttons,
@@ -156,7 +157,7 @@ class CarKeyBroadcastReceiver : BroadcastReceiver(), CarKeyReceiver {
             "com.bz.action.phone.hangup" -> handleClick(context, 3002)
             DynavinPanelKey.ACTION -> {
                 val code = intent.getIntExtra(DynavinPanelKey.EXTRA_KEYCODE, 0)
-                if (code <= 0) return
+                if (code <= 0 || DynavinIll.carScreen()) return
                 if (DynavinPanelKey.mcuKeysActive && code in DynavinPanelKey.MCU_KEYS.values) return
                 val key = DynavinPanelKey.keyFor(App.provide(context).settings.keyCodes, code)
                 handleClick(context, key, SystemClock.uptimeMillis(), DynavinPanelKey.toKeyCode(code))

@@ -8,6 +8,7 @@ import android.os.SystemClock
 import com.andrerinas.openheadunit.App
 import com.andrerinas.openheadunit.input.DynavinPanelKey
 import com.andrerinas.openheadunit.utils.AppLog
+import com.andrerinas.openheadunit.utils.DynavinIll
 
 /**
  * Dynavin knob joystick. DynavinService only broadcasts a key on release, and the MCU never sends the release for
@@ -56,6 +57,7 @@ class CarDynavinMcuReceiver : CarKeyReceiver {
     private fun onKey(mcuKey: Int) {
         val code = DynavinPanelKey.MCU_KEYS[mcuKey] ?: return
         val ctx = context ?: return
+        if (DynavinIll.carScreen()) return
         val key = DynavinPanelKey.keyFor(App.provide(ctx).settings.keyCodes, code)
         handleClick(ctx, key, SystemClock.uptimeMillis(), DynavinPanelKey.toKeyCode(code))
     }
