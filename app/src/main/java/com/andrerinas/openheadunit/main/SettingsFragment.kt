@@ -46,6 +46,7 @@ import com.andrerinas.openheadunit.connection.wifi.modes.nativeaa.CredentialFiel
 import com.andrerinas.openheadunit.connection.wifi.modes.nativeaa.NativeAaWakeDamagePolicy
 import com.andrerinas.openheadunit.connection.wifi.modes.nativeaa.zbt.ZbtProbe
 import com.andrerinas.openheadunit.input.MediaKeyRoutingPolicy
+import com.andrerinas.openheadunit.location.SpeedVolumePolicy
 import com.andrerinas.openheadunit.connection.wifi.direct.ObservedP2pCredentials
 import com.andrerinas.openheadunit.connection.wifi.direct.P2pIdentityEdit
 import com.andrerinas.openheadunit.connection.wifi.direct.P2pIdentityEditPolicy
@@ -80,6 +81,7 @@ import com.andrerinas.openheadunit.utils.LocaleHelper
 import com.andrerinas.openheadunit.BuildConfig
 import com.andrerinas.openheadunit.utils.LogExporter
 import com.andrerinas.openheadunit.utils.SettingsBackupManager
+import com.andrerinas.openheadunit.utils.SettingsRestoreHandler
 import com.andrerinas.openheadunit.utils.ToastUtils
 import com.andrerinas.openheadunit.utils.VpnControl
 import com.andrerinas.openheadunit.utils.DialogUtils
@@ -131,7 +133,7 @@ class SettingsFragment : Fragment() {
     // Wireless items here only appear in Basic when the user connects wirelessly (see filterSettings).
     private val basicSettingIds = setOf(
         // General
-        "autoOptimize", "connectionMode", "appLanguage", "listenForUsbDevices",
+        "autoOptimize", "connectionMode", "appLanguage", "listenForUsbDevices", "usbWirelessDongle",
         // Wireless (shown in Basic only when WiFi is among the selected connection modes).
         // The hotspot entries come along with the transport choice: they only render once Hotspot
         // is picked, and on a device that will not let an app read its hotspot configuration the
@@ -203,10 +205,13 @@ class SettingsFragment : Fragment() {
     private var pendingMicInputSource by pending::micInputSource
     private var pendingEnableRotary by pending::enableRotary
     private var pendingMediaKeyRouting by pending::mediaKeyRouting
+    private var pendingVolumeKeysToPhone by pending::volumeKeysToPhone
+    private var pendingSpeedVolumeMode by pending::speedVolumeMode
     private var pendingAudioLatencyMultiplier by pending::audioLatencyMultiplier
     private var pendingAudioTimeCorrectionMode by pending::audioMatchingMode
     private var pendingUseLibusb by pending::useLibusb
     private var pendingListenForUsbDevices by pending::listenForUsbDevices
+    private var pendingUsbWirelessDongle by pending::usbWirelessDongle
     private var pendingAudioQueueCapacity by pending::audioQueueCapacity
     private var pendingShowToastMessages by pending::showToastMessages
     private var pendingScreenOrientation by pending::screenOrientation
@@ -224,6 +229,7 @@ class SettingsFragment : Fragment() {
     private var pendingWaitForWifiTimeout by pending::waitForWifiTimeout
     private var pendingBluetoothManagerServiceName by pending::bluetoothManagerServiceName
     private var pendingNativeAaIgnoreExternalBt by pending::nativeAaIgnoreExternalBt
+    private var pendingNativeAaEnableBluetooth by pending::nativeAaEnableBluetooth
     private var pendingExternalBtZbtTransport by pending::externalBtZbtTransport
     private var pendingExternalBtBlinkTransport by pending::externalBtBlinkTransport
     private var pendingExternalBtZjSocketTransport by pending::externalBtZjSocketTransport
@@ -269,6 +275,7 @@ class SettingsFragment : Fragment() {
     private var pendingKillOnDisconnect by pending::killOnDisconnect
     private var pendingAutoKillOemApps by pending::autoKillOemApps
     private var pendingRaiseProjectionDuringCall by pending::raiseProjectionDuringCall
+    private var pendingShowOverLockScreen by pending::showOverLockScreen
 
     // Custom Insets
     private var pendingInsetLeft by pending::insetLeft
@@ -658,6 +665,8 @@ class SettingsFragment : Fragment() {
         pendingMicInputSource?.let { if (it != settings.micInputSource) settings.micInputSource = it }
         pendingEnableRotary?.let { if (it != settings.enableRotary) settings.enableRotary = it }
         pendingMediaKeyRouting?.let { if (it != settings.mediaKeyRouting) settings.mediaKeyRouting = it }
+        pendingVolumeKeysToPhone?.let { if (it != settings.volumeKeysToPhone) settings.volumeKeysToPhone = it }
+        pendingSpeedVolumeMode?.let { if (it != settings.speedVolumeMode) settings.speedVolumeMode = it }
         pendingAudioLatencyMultiplier?.let { if (it != settings.audioLatencyMultiplier) settings.audioLatencyMultiplier = it }
         pendingAudioTimeCorrectionMode?.let { if (it != settings.audioMatchingMode) settings.audioMatchingMode = it }
         pendingAudioQueueCapacity?.let { if (it != settings.audioQueueCapacity) settings.audioQueueCapacity = it }
@@ -693,6 +702,7 @@ class SettingsFragment : Fragment() {
         pendingKillOnDisconnect?.let { if (it != settings.rawKillOnDisconnect) settings.rawKillOnDisconnect = it }
         pendingAutoKillOemApps?.let { if (it != settings.autoKillOemApps) settings.autoKillOemApps = it }
         pendingRaiseProjectionDuringCall?.let { if (it != settings.raiseProjectionDuringCall) settings.raiseProjectionDuringCall = it }
+        pendingShowOverLockScreen?.let { if (it != settings.showOverLockScreen) settings.showOverLockScreen = it }
         pendingAutoEnableHotspot?.let { if (it != settings.autoEnableHotspot) settings.autoEnableHotspot = it }
         pendingAutoRestartWifi?.let { if (it != settings.autoRestartWifiWhenP2pStuck) settings.autoRestartWifiWhenP2pStuck = it }
         pendingUseLibusb?.let { if (it != settings.useLibusb) settings.useLibusb = it }
@@ -701,6 +711,7 @@ class SettingsFragment : Fragment() {
             Settings.syncListenForUsbDevicesToDeviceStorage(requireContext(), it)
             Settings.setUsbAttachedActivityEnabled(requireContext(), it)
         }
+        pendingUsbWirelessDongle?.let { if (it != settings.usbWirelessDongle) settings.usbWirelessDongle = it }
         pendingNarrowBandProfileCap?.let { if (it != settings.narrowBandProfileCap) settings.narrowBandProfileCap = it }
         pendingDebugVideoLowLatency?.let { if (it != settings.debugVideoLowLatency) settings.debugVideoLowLatency = it }
         pendingAllowExternalConfiguration?.let { if (it != settings.allowExternalConfiguration) settings.allowExternalConfiguration = it }
@@ -713,6 +724,7 @@ class SettingsFragment : Fragment() {
         pendingWaitForWifiTimeout?.let { if (it != settings.waitForWifiTimeout) settings.waitForWifiTimeout = it }
         pendingBluetoothManagerServiceName?.let { if (it != settings.bluetoothManagerServiceName) settings.bluetoothManagerServiceName = it }
         pendingNativeAaIgnoreExternalBt?.let { if (it != settings.nativeAaIgnoreExternalBt) settings.nativeAaIgnoreExternalBt = it }
+        pendingNativeAaEnableBluetooth?.let { if (it != settings.nativeAaEnableBluetooth) settings.nativeAaEnableBluetooth = it }
         pendingExternalBtZbtTransport?.let { if (it != settings.externalBtZbtTransport) settings.externalBtZbtTransport = it }
         pendingExternalBtBlinkTransport?.let { if (it != settings.externalBtBlinkTransport) settings.externalBtBlinkTransport = it }
         pendingExternalBtZjSocketTransport?.let { if (it != settings.externalBtZjSocketTransport) settings.externalBtZjSocketTransport = it }
@@ -998,6 +1010,19 @@ class SettingsFragment : Fragment() {
             isChecked = pendingListenForUsbDevices ?: true,
             onCheckedChanged = { isChecked ->
                 pendingListenForUsbDevices = isChecked
+                checkChanges()
+                updateSettingsList()
+            }
+        ))
+
+        items.add(SettingItem.ToggleSettingEntry(
+            stableId = "usbWirelessDongle",
+            nameResId = R.string.usb_wireless_dongle_label,
+            descriptionResId = R.string.usb_wireless_dongle_summary,
+            helpResId = R.string.usb_wireless_dongle_help,
+            isChecked = pendingUsbWirelessDongle ?: false,
+            onCheckedChanged = { isChecked ->
+                pendingUsbWirelessDongle = isChecked
                 checkChanges()
                 updateSettingsList()
             }
@@ -1838,6 +1863,31 @@ class SettingsFragment : Fragment() {
             }
         }
 
+        // Steps rather than a gain curve, so one setting works on this head unit's stream and, as
+        // Android Auto volume keys, on the phone. The help text quotes SpeedVolumePolicy's numbers.
+        val speedVolumeModes = listOf(
+            SpeedVolumePolicy.Mode.OFF,
+            SpeedVolumePolicy.Mode.LOW,
+            SpeedVolumePolicy.Mode.HIGH
+        )
+        val currentSpeedVolumeMode = pendingSpeedVolumeMode ?: SpeedVolumePolicy.Mode.OFF
+        items.add(SettingItem.SegmentedButtonSettingEntry(
+            stableId = "speedVolumeMode",
+            nameResId = R.string.speed_volume,
+            helpResId = R.string.speed_volume_help,
+            options = listOf(
+                getString(R.string.speed_volume_off),
+                getString(R.string.speed_volume_low),
+                getString(R.string.speed_volume_high)
+            ),
+            selectedIndex = speedVolumeModes.indexOf(currentSpeedVolumeMode).coerceAtLeast(0),
+            onOptionSelected = { index ->
+                pendingSpeedVolumeMode = speedVolumeModes.getOrElse(index) { SpeedVolumePolicy.Mode.OFF }
+                checkChanges()
+                updateSettingsList()
+            }
+        ))
+
         items.add(SettingItem.SettingEntry(
             stableId = "audioStreamSettings",
             nameResId = R.string.audio_stream_settings,
@@ -2108,6 +2158,20 @@ class SettingsFragment : Fragment() {
             ))
         }
 
+        // Map and directions over a locked unit; nothing a person at the unit does reaches the phone.
+        items.add(SettingItem.ToggleSettingEntry(
+            stableId = "showOverLockScreen",
+            nameResId = R.string.show_over_lock_screen,
+            descriptionResId = R.string.show_over_lock_screen_summary,
+            helpResId = R.string.show_over_lock_screen_help,
+            isChecked = pendingShowOverLockScreen ?: settings.showOverLockScreen,
+            onCheckedChanged = { isChecked ->
+                pendingShowOverLockScreen = isChecked
+                checkChanges()
+                updateSettingsList()
+            }
+        ))
+
         if (!isCarLauncherActive) {
             val exitActions = arrayOf(
                 getString(R.string.aa_exit_action_oem_launcher),
@@ -2157,6 +2221,11 @@ class SettingsFragment : Fragment() {
             stableId = "keymap",
             nameResId = R.string.keymap,
             value = getString(R.string.keymap_description),
+            searchKeywords = kw(
+                R.string.action_search_keywords, R.string.action_launch_app,
+                R.string.gesture_action_exit_dialog, R.string.gesture_action_toggle_fullscreen,
+                R.string.gesture_action_night_overlay, R.string.gesture_action_dim_screen
+            ),
             onClick = { _ ->
                 try {
                     findNavController().navigate(R.id.action_settingsFragment_to_keymapFragment)
@@ -2170,6 +2239,11 @@ class SettingsFragment : Fragment() {
             stableId = "gestures",
             nameResId = R.string.gestures,
             value = getString(R.string.gestures_description),
+            searchKeywords = kw(
+                R.string.action_search_keywords, R.string.action_launch_app,
+                R.string.gesture_action_exit_dialog, R.string.gesture_action_toggle_fullscreen,
+                R.string.gesture_action_night_overlay, R.string.gesture_action_dim_screen
+            ),
             onClick = { _ ->
                 findNavController().navigate(R.id.action_settingsFragment_to_gesturesFragment)
             }
@@ -2222,6 +2296,21 @@ class SettingsFragment : Fragment() {
                 textResId = R.string.media_key_routing_hint_common
             ))
         }
+
+        // For a phone that plays its own audio: with Audio Sink on, this head unit plays the sound
+        // and its own volume is the one that matters, so this stays a choice and is off by default.
+        items.add(SettingItem.ToggleSettingEntry(
+            stableId = "volumeKeysToPhone",
+            nameResId = R.string.volume_keys_to_phone,
+            descriptionResId = R.string.volume_keys_to_phone_summary,
+            helpResId = R.string.volume_keys_to_phone_help,
+            isChecked = pendingVolumeKeysToPhone ?: settings.volumeKeysToPhone,
+            onCheckedChanged = { isChecked ->
+                pendingVolumeKeysToPhone = isChecked
+                checkChanges()
+                updateSettingsList()
+            }
+        ))
 
         // --- Navigation Settings ---
         items.add(SettingItem.CategoryHeader("navigation", R.string.category_navigation))
@@ -3219,29 +3308,6 @@ class SettingsFragment : Fragment() {
             .show()
     }
 
-    private data class ImportSnapshot(
-        val wifiConnectionMode: WifiLauncherMode,
-        val helperConnectionStrategy: HelperStrategy,
-        val nativeApStrategy: NativeStrategy,
-        val bluetoothManagerServiceName: String,
-        val wirelessSelected: Boolean,
-        val wifiDirectBand: Int,
-        val fiveGhzChannel: Int,
-        val externalBtZbtTransport: Boolean,
-        val externalBtBlinkTransport: Boolean,
-        val externalBtZjSocketTransport: Boolean,
-        val nativeAaIgnoreExternalBt: Boolean,
-        val autoEnableHotspot: Boolean,
-        val insecureAaRfcommListener: Boolean,
-        val appLanguage: String,
-        val uiScaleSettingsPercent: Int,
-        val appTheme: Settings.AppTheme,
-        val useExtremeDarkMode: Boolean,
-        val useGradientBackground: Boolean,
-        val screenOrientation: Settings.ScreenOrientation,
-        val hudMirroring: Boolean
-    )
-
     private fun startExportSettings() {
         val options = mutableListOf<Pair<String, () -> Unit>>()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -3415,7 +3481,7 @@ class SettingsFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val result = withContext(Dispatchers.IO) {
-                    SettingsBackupManager.resetFromContext(appContext)
+                    SettingsBackupManager.resetFromContext(appContext, applyTheme = false)
                 }
                 handleResetSettings(snapshot, result)
             } catch (e: Exception) {
@@ -3425,27 +3491,10 @@ class SettingsFragment : Fragment() {
         }
     }
 
-    private fun handleResetSettings(snapshot: ImportSnapshot, result: SettingsBackupManager.ResetResult) {
+    private fun handleResetSettings(snapshot: SettingsRestoreHandler.Snapshot, result: SettingsBackupManager.ResetResult) {
         val ctx = context ?: return
         settings = App.provide(ctx).settings
-        applyWirelessSideEffects(snapshot, ctx)
-
-        // Re-evaluate app theme engine to immediately apply default theme
-        AppThemeManager.reapply(ctx, settings)
-
-        // Notify Service about Night Mode changes immediately
-        val nightModeUpdateIntent = Intent(AapService.ACTION_REQUEST_NIGHT_MODE_UPDATE).apply {
-            setPackage(ctx.packageName)
-        }
-        ctx.sendBroadcast(nightModeUpdateIntent)
-
-        if (SettingsBackupManager.requiresProjectionRestart(result.changedKeys) && App.provide(ctx).commManager.isConnected) {
-            ToastUtils.showToast(ctx, ctx.getString(R.string.stopping_service), Toast.LENGTH_SHORT, force = true)
-            val stopServiceIntent = Intent(ctx, AapService::class.java).apply {
-                action = AapService.ACTION_STOP_SERVICE
-            }
-            ContextCompat.startForegroundService(ctx, stopServiceIntent)
-        }
+        val recreate = SettingsRestoreHandler.apply(ctx, settings, snapshot, result.changedKeys)
 
         hasChanges = false
         requiresRestart = false
@@ -3456,7 +3505,7 @@ class SettingsFragment : Fragment() {
 
         ToastUtils.showToast(ctx, R.string.settings_reset, Toast.LENGTH_LONG, force = true)
 
-        if (shouldRecreateAfterImport(snapshot)) {
+        if (recreate) {
             activity?.recreate()
         }
     }
@@ -3593,7 +3642,7 @@ class SettingsFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val result = withContext(Dispatchers.IO) {
-                    SettingsBackupManager.importFromUri(appContext, uri)
+                    SettingsBackupManager.importFromUri(appContext, uri, applyTheme = false)
                 }
                 handleImportedSettings(snapshot, result)
             } catch (e: Exception) {
@@ -3609,7 +3658,7 @@ class SettingsFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val result = withContext(Dispatchers.IO) {
-                    SettingsBackupManager.importFromFile(appContext, file)
+                    SettingsBackupManager.importFromFile(appContext, file, applyTheme = false)
                 }
                 handleImportedSettings(snapshot, result)
             } catch (e: Exception) {
@@ -3619,52 +3668,12 @@ class SettingsFragment : Fragment() {
         }
     }
 
-    private fun createImportSnapshot(): ImportSnapshot {
-        return ImportSnapshot(
-            wifiConnectionMode = settings.wifiConnectionMode,
-            helperConnectionStrategy = settings.helperConnectionStrategy,
-            nativeApStrategy = settings.nativeApStrategy,
-            bluetoothManagerServiceName = settings.bluetoothManagerServiceName,
-            wirelessSelected = settings.showsWifi(),
-            wifiDirectBand = settings.wifiDirectBand,
-            fiveGhzChannel = settings.fiveGhzChannel,
-            externalBtZbtTransport = settings.externalBtZbtTransport,
-            externalBtBlinkTransport = settings.externalBtBlinkTransport,
-            externalBtZjSocketTransport = settings.externalBtZjSocketTransport,
-            nativeAaIgnoreExternalBt = settings.nativeAaIgnoreExternalBt,
-            autoEnableHotspot = settings.autoEnableHotspot,
-            insecureAaRfcommListener = settings.insecureAaRfcommListener,
-            appLanguage = settings.appLanguage,
-            uiScaleSettingsPercent = settings.uiScaleSettingsPercent,
-            appTheme = settings.appTheme,
-            useExtremeDarkMode = settings.useExtremeDarkMode,
-            useGradientBackground = settings.useGradientBackground,
-            screenOrientation = settings.screenOrientation,
-            hudMirroring = settings.hudMirroring
-        )
-    }
+    private fun createImportSnapshot() = SettingsRestoreHandler.capture(requireContext(), settings)
 
-    private fun handleImportedSettings(snapshot: ImportSnapshot, result: SettingsBackupManager.ImportResult) {
+    private fun handleImportedSettings(snapshot: SettingsRestoreHandler.Snapshot, result: SettingsBackupManager.ImportResult) {
         val ctx = context ?: return
         settings = App.provide(ctx).settings
-        applyWirelessSideEffects(snapshot, ctx)
-
-        // Re-evaluate app theme engine to immediately apply static or dynamic theme
-        AppThemeManager.reapply(ctx, settings)
-
-        // Notify Service about Night Mode changes immediately
-        val nightModeUpdateIntent = Intent(AapService.ACTION_REQUEST_NIGHT_MODE_UPDATE).apply {
-            setPackage(ctx.packageName)
-        }
-        ctx.sendBroadcast(nightModeUpdateIntent)
-
-        if (SettingsBackupManager.requiresProjectionRestart(result.changedKeys) && App.provide(ctx).commManager.isConnected) {
-            ToastUtils.showToast(ctx, getString(R.string.stopping_service), Toast.LENGTH_SHORT, force = true)
-            val stopServiceIntent = Intent(ctx, AapService::class.java).apply {
-                action = AapService.ACTION_STOP_SERVICE
-            }
-            ContextCompat.startForegroundService(ctx, stopServiceIntent)
-        }
+        val recreate = SettingsRestoreHandler.apply(ctx, settings, snapshot, result.changedKeys)
 
         hasChanges = false
         requiresRestart = false
@@ -3680,62 +3689,15 @@ class SettingsFragment : Fragment() {
             force = true
         )
 
-        if (shouldRecreateAfterImport(snapshot)) {
+        if (recreate) {
             activity?.recreate()
         }
     }
 
     /** What a launcher reads once at construction, for [WirelessRearmPolicy]. */
-    private fun wirelessRearmConfig(context: Context = requireContext()) = WirelessRearmPolicy.Config(
-        wifiConnectionMode = settings.wifiConnectionMode,
-        helperConnectionStrategy = settings.helperConnectionStrategy,
-        nativeApStrategy = settings.nativeApStrategy,
-        bluetoothManagerServiceName = settings.bluetoothManagerServiceName,
-        wirelessSelected = settings.showsWifi(),
-        wifiDirectBand = settings.wifiDirectBand,
-        fiveGhzChannel = settings.fiveGhzChannel,
-        externalBtZbtTransport = settings.externalBtZbtTransport,
-        externalBtBlinkTransport = settings.externalBtBlinkTransport,
-        externalBtZjSocketTransport = settings.externalBtZjSocketTransport,
-        nativeAaIgnoreExternalBt = settings.nativeAaIgnoreExternalBt,
-        esp32Relay = Esp32RelaySession.hasSavedEsp32Relay(context),
-        autoEnableHotspot = settings.autoEnableHotspot,
-        insecureAaRfcommListener = settings.insecureAaRfcommListener,
+    private fun wirelessRearmConfig(context: Context = requireContext()) = WirelessRearmPolicy.capture(
+        settings, Esp32RelaySession.hasSavedEsp32Relay(context)
     )
-
-    private fun applyWirelessSideEffects(snapshot: ImportSnapshot, context: Context = requireContext()) {
-        val before = WirelessRearmPolicy.Config(
-            wifiConnectionMode = snapshot.wifiConnectionMode,
-            helperConnectionStrategy = snapshot.helperConnectionStrategy,
-            nativeApStrategy = snapshot.nativeApStrategy,
-            bluetoothManagerServiceName = snapshot.bluetoothManagerServiceName,
-            wirelessSelected = snapshot.wirelessSelected,
-            wifiDirectBand = snapshot.wifiDirectBand,
-            fiveGhzChannel = snapshot.fiveGhzChannel,
-            externalBtZbtTransport = snapshot.externalBtZbtTransport,
-            externalBtBlinkTransport = snapshot.externalBtBlinkTransport,
-            externalBtZjSocketTransport = snapshot.externalBtZjSocketTransport,
-            nativeAaIgnoreExternalBt = snapshot.nativeAaIgnoreExternalBt,
-            // An import leaves the relay's own store alone.
-            esp32Relay = Esp32RelaySession.hasSavedEsp32Relay(context),
-            autoEnableHotspot = snapshot.autoEnableHotspot,
-            insecureAaRfcommListener = snapshot.insecureAaRfcommListener,
-        )
-        if (WirelessRearmPolicy.requiresRearm(before, wirelessRearmConfig(context))) {
-            AapService.applyWirelessSettings(context,
-                startWireless = settings.wifiConnectionMode != WifiLauncherMode.MANUAL && settings.showsWifi())
-        }
-    }
-
-    private fun shouldRecreateAfterImport(snapshot: ImportSnapshot): Boolean {
-        return snapshot.appLanguage != settings.appLanguage ||
-            snapshot.uiScaleSettingsPercent != settings.uiScaleSettingsPercent ||
-            snapshot.appTheme != settings.appTheme ||
-            snapshot.useExtremeDarkMode != settings.useExtremeDarkMode ||
-            snapshot.useGradientBackground != settings.useGradientBackground ||
-            snapshot.screenOrientation != settings.screenOrientation ||
-            snapshot.hudMirroring != settings.hudMirroring
-    }
 
     private fun showAudioOffsetsDialog() {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_audio_offsets, null)
@@ -4602,6 +4564,21 @@ class SettingsFragment : Fragment() {
                         .show()
                 }
             ))
+
+            if (Build.VERSION.SDK_INT <= 32) {
+                items.add(SettingItem.ToggleSettingEntry(
+                    stableId = "nativeAaEnableBluetooth",
+                    nameResId = R.string.native_aa_enable_bluetooth,
+                    descriptionResId = R.string.native_aa_enable_bluetooth_description,
+                    isChecked = pendingNativeAaEnableBluetooth ?: settings.nativeAaEnableBluetooth,
+                    searchKeywords = "topway ts9 dual bluetooth data service radio enable startup",
+                    onCheckedChanged = { isChecked ->
+                        pendingNativeAaEnableBluetooth = isChecked
+                        checkChanges()
+                        updateSettingsList()
+                    }
+                ))
+            }
 
             // An action, not a switch: the wake's cost is a property of this unit's own Bluetooth
             // stack, which is measured rather than asked. What a user can do is ask for the

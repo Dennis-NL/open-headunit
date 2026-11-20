@@ -123,6 +123,7 @@ class HomeFragment : Fragment() {
     private lateinit var wifiTile: View
     private lateinit var exitButton: View
     private lateinit var appsButton: View
+    private var sidebarAppsButton: View? = null
     private var primaryAction: View? = null
     private var primaryCancel: View? = null
     private lateinit var favoriteSlots: List<View>
@@ -224,6 +225,7 @@ class HomeFragment : Fragment() {
         wifiTile = container.findViewById(R.id.wifi_button)
         exitButton = container.findViewById(R.id.exit_button)
         appsButton = container.findViewById(R.id.apps_button)
+        sidebarAppsButton = container.findViewById(R.id.sidebar_apps_button)
         primaryAction = container.findViewById(R.id.home_primary_action)
         primaryCancel = container.findViewById(R.id.home_primary_cancel)
         favoriteSlots = HomeUiHelper.favoriteSlotIds.mapNotNull { container.findViewById(it) }
@@ -700,6 +702,7 @@ class HomeFragment : Fragment() {
             isDefaultLauncher = CarLauncherManager.isDefaultLauncher(ctx)
         )
         exitButton.visibility = if (shouldShowExit) View.VISIBLE else View.GONE
+        sidebarAppsButton?.visibility = if (!shouldShowExit && isLauncherActive) View.VISIBLE else View.GONE
         HomeUiHelper.applyFavoritesVisibility(root, isLauncherActive, appSettings.showHomeFavoriteApps)
         if (isLauncherActive) {
             AppDrawerFragment.preload(ctx)
@@ -1235,6 +1238,9 @@ class HomeFragment : Fragment() {
         // The widgets switch turns the row off, add tile included.
         if (!appSettings.isCarLauncherActive || !appSettings.showHomeWidgets || widgetRowOnItsOwnPage(appSettings)) {
             scroll.visibility = View.GONE
+            if (root.findViewById<View>(R.id.home_favorites)?.visibility != View.VISIBLE) {
+                root.findViewById<View>(R.id.home_favorites_area)?.visibility = View.GONE
+            }
             return
         }
 
@@ -1253,9 +1259,13 @@ class HomeFragment : Fragment() {
         }
         if (row.childCount == 0) {
             scroll.visibility = View.GONE
+            if (root.findViewById<View>(R.id.home_favorites)?.visibility != View.VISIBLE) {
+                root.findViewById<View>(R.id.home_favorites_area)?.visibility = View.GONE
+            }
             return
         }
         scroll.visibility = View.VISIBLE
+        root.findViewById<View>(R.id.home_favorites_area)?.visibility = View.VISIBLE
         val addTileHeight = ctx.resources.getDimensionPixelSize(R.dimen.home_favorites_height)
         val tallest = ids.maxOfOrNull { HomeWidgets.minHeightPx(ctx, it) } ?: 0
         // One frame later: changing the row's height or hiding it inside the layout pass does not
@@ -1578,15 +1588,7 @@ class HomeFragment : Fragment() {
 
     private fun onFavoriteClicked(slot: Int) {
         val target = App.provide(requireContext()).settings.homeFavoriteApps[slot]
-        val launched = when (target) {
-            is FavoriteTarget.Empty -> false
-            is FavoriteTarget.App -> AppDrawerFragment.launchPackage(requireContext(), target.packageName)
-            is FavoriteTarget.Shortcut ->
-                LauncherShortcuts.launch(requireContext(), target.packageName, target.shortcutId) ||
-                    // Unreadable outside the home role: the app is the closest thing that still opens.
-                    (!LauncherShortcuts.canRead(requireContext()) &&
-                        AppDrawerFragment.launchPackage(requireContext(), target.packageName))
-        }
+        val launched = AppLauncher.launch(requireContext(), target)
         if (!launched) openAppDrawer(favoriteSlot = slot)
     }
 
@@ -1772,6 +1774,7 @@ class HomeFragment : Fragment() {
 
     private fun setupListeners() {
         appsButton.setOnClickListener { openAppDrawer() }
+        sidebarAppsButton?.setOnClickListener { openAppDrawer() }
         exitButton.setOnClickListener { exitApp() }
         selfModeTile.setOnClickListener { onSelfModeClicked() }
         usbTile.setOnClickListener { onUsbClicked() }

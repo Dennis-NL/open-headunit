@@ -8,6 +8,7 @@ import com.andrerinas.openheadunit.connection.wifi.modes.nativeaa.NativeDriverSe
 import com.andrerinas.openheadunit.connection.wifi.modes.nativeaa.NativeStrategy
 import com.andrerinas.openheadunit.decoder.audio.PlaybackFocusPolicy
 import com.andrerinas.openheadunit.input.MediaKeyRoutingPolicy
+import com.andrerinas.openheadunit.location.SpeedVolumePolicy
 import com.andrerinas.openheadunit.utils.Settings
 
 /**
@@ -41,10 +42,13 @@ class SettingsPendingCopy {
     var micInputSource: Int? = null
     var enableRotary: Boolean? = null
     var mediaKeyRouting: MediaKeyRoutingPolicy.Mode? = null
+    var volumeKeysToPhone: Boolean? = null
+    var speedVolumeMode: SpeedVolumePolicy.Mode? = null
     var audioLatencyMultiplier: Int? = null
     var audioMatchingMode: com.andrerinas.openheadunit.decoder.audio.AudioTimeCorrectionMode? = null
     var useLibusb: Boolean? = null
     var listenForUsbDevices: Boolean? = null
+    var usbWirelessDongle: Boolean? = null
     var audioQueueCapacity: Int? = null
     var showToastMessages: Boolean? = null
     var screenOrientation: Settings.ScreenOrientation? = null
@@ -61,6 +65,7 @@ class SettingsPendingCopy {
     var waitForWifiTimeout: Int? = null
     var bluetoothManagerServiceName: String? = null
     var nativeAaIgnoreExternalBt: Boolean? = null
+    var nativeAaEnableBluetooth: Boolean? = null
     var externalBtZbtTransport: Boolean? = null
     var externalBtBlinkTransport: Boolean? = null
     var externalBtZjSocketTransport: Boolean? = null
@@ -95,6 +100,7 @@ class SettingsPendingCopy {
     var killOnDisconnect: Boolean? = null
     var autoKillOemApps: Boolean? = null
     var raiseProjectionDuringCall: Boolean? = null
+    var showOverLockScreen: Boolean? = null
     var insetLeft: Int? = null
     var insetTop: Int? = null
     var insetRight: Int? = null
@@ -133,10 +139,13 @@ class SettingsPendingCopy {
         micInputSource = settings.micInputSource
         enableRotary = settings.enableRotary
         mediaKeyRouting = settings.mediaKeyRouting
+        volumeKeysToPhone = settings.volumeKeysToPhone
+        speedVolumeMode = settings.speedVolumeMode
         audioLatencyMultiplier = settings.audioLatencyMultiplier
         audioMatchingMode = settings.audioMatchingMode
         useLibusb = settings.useLibusb
         listenForUsbDevices = settings.listenForUsbDevices
+        usbWirelessDongle = settings.usbWirelessDongle
         audioQueueCapacity = settings.audioQueueCapacity
         showToastMessages = settings.showToastMessages
         screenOrientation = settings.screenOrientation
@@ -153,6 +162,7 @@ class SettingsPendingCopy {
         waitForWifiTimeout = settings.waitForWifiTimeout
         bluetoothManagerServiceName = settings.bluetoothManagerServiceName
         nativeAaIgnoreExternalBt = settings.nativeAaIgnoreExternalBt
+        nativeAaEnableBluetooth = settings.nativeAaEnableBluetooth
         externalBtZbtTransport = settings.externalBtZbtTransport
         externalBtBlinkTransport = settings.externalBtBlinkTransport
         externalBtZjSocketTransport = settings.externalBtZjSocketTransport
@@ -187,6 +197,7 @@ class SettingsPendingCopy {
         killOnDisconnect = settings.rawKillOnDisconnect
         autoKillOemApps = settings.autoKillOemApps
         raiseProjectionDuringCall = settings.raiseProjectionDuringCall
+        showOverLockScreen = settings.showOverLockScreen
         insetLeft = settings.insetLeft
         insetTop = settings.insetTop
         insetRight = settings.insetRight
@@ -226,10 +237,13 @@ class SettingsPendingCopy {
         micInputSource != settings.micInputSource ||
         enableRotary != settings.enableRotary ||
         mediaKeyRouting != settings.mediaKeyRouting ||
+        volumeKeysToPhone != settings.volumeKeysToPhone ||
+        speedVolumeMode != settings.speedVolumeMode ||
         audioLatencyMultiplier != settings.audioLatencyMultiplier ||
         audioMatchingMode != settings.audioMatchingMode ||
         useLibusb != settings.useLibusb ||
         listenForUsbDevices != settings.listenForUsbDevices ||
+        usbWirelessDongle != settings.usbWirelessDongle ||
         audioQueueCapacity != settings.audioQueueCapacity ||
         showToastMessages != settings.showToastMessages ||
         screenOrientation != settings.screenOrientation ||
@@ -246,6 +260,7 @@ class SettingsPendingCopy {
         waitForWifiTimeout != settings.waitForWifiTimeout ||
         bluetoothManagerServiceName != settings.bluetoothManagerServiceName ||
         nativeAaIgnoreExternalBt != settings.nativeAaIgnoreExternalBt ||
+        nativeAaEnableBluetooth != settings.nativeAaEnableBluetooth ||
         externalBtZbtTransport != settings.externalBtZbtTransport ||
         externalBtBlinkTransport != settings.externalBtBlinkTransport ||
         externalBtZjSocketTransport != settings.externalBtZjSocketTransport ||
@@ -280,6 +295,7 @@ class SettingsPendingCopy {
         killOnDisconnect != settings.rawKillOnDisconnect ||
         autoKillOemApps != settings.autoKillOemApps ||
         raiseProjectionDuringCall != settings.raiseProjectionDuringCall ||
+        showOverLockScreen != settings.showOverLockScreen ||
         insetLeft != settings.insetLeft ||
         insetTop != settings.insetTop ||
         insetRight != settings.insetRight ||

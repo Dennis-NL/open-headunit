@@ -91,6 +91,7 @@ object HomeUiHelper {
 
     private val scaledTiles = listOf(
         R.id.usb_button, R.id.wifi_button, R.id.self_mode_button, R.id.settings_button, R.id.exit_button,
+        R.id.sidebar_apps_button,
         // The scroll view keeps the tiles' width, so it scales with them.
         R.id.home_bar_scroll
     )
@@ -101,6 +102,7 @@ object HomeUiHelper {
      */
     private val fittedTiles = listOf(
         R.id.usb_button, R.id.wifi_button, R.id.self_mode_button, R.id.settings_button, R.id.exit_button,
+        R.id.sidebar_apps_button,
         R.id.home_bar_scroll
     )
 
@@ -242,6 +244,9 @@ object HomeUiHelper {
             shape(palette.panel, panelRadius, palette.panelStroke, strokePx)
         rootView.findViewById<ViewGroup>(R.id.exit_button)?.let {
             paintTile(it, tileBackground(context, palette), palette.textMuted, palette.textMuted)
+        }
+        rootView.findViewById<ViewGroup>(R.id.sidebar_apps_button)?.let {
+            paintTile(it, tileBackground(context, palette), palette.text, palette.text)
         }
         rootView.findViewById<ViewGroup>(R.id.apps_button)?.let {
             val radius = resources.getDimension(R.dimen.home_tile_radius)
@@ -446,6 +451,7 @@ object HomeUiHelper {
         // Exit is pinned under the scroll and shrinks with the tiles, so the room it takes now
         // (and the gap above it) counts as room the tiles and Exit share.
         val exit = rootView.findViewById<View>(R.id.exit_button)?.takeIf { it.visibility == View.VISIBLE }
+            ?: rootView.findViewById<View>(R.id.sidebar_apps_button)?.takeIf { it.visibility == View.VISIBLE }
         val available = scroll.height - tiles.paddingTop - tiles.paddingBottom +
             (exit?.let { it.height + gapPx } ?: 0)
         val fixedPx = gapPx * (visible.size - 1) + (if (exit != null) gapPx else 0)
@@ -481,7 +487,7 @@ object HomeUiHelper {
                 (0 until group.childCount).map { group.getChildAt(it) }.filterIsInstance<WordFitTextView>().firstOrNull()
             } ?: return@maxOfOrNull tilePx
             val name = label.getTag(R.id.home_tile_name) as? CharSequence ?: label.text
-            val connection = tile.id != R.id.settings_button && tile.id != R.id.exit_button
+            val connection = tile.id != R.id.settings_button && tile.id != R.id.exit_button && tile.id != R.id.sidebar_apps_button
             val texts = if (connection) listOf(name) + states else listOf(name)
             label.tileWidthForWholeWords(texts, tilePx, maxPx)
         } ?: tilePx
@@ -555,10 +561,11 @@ object HomeUiHelper {
         val subtitle = rootView.findViewById<TextView>(R.id.home_primary_subtitle)
         val action = rootView.findViewById<TextView>(R.id.home_primary_action)
         val icon = rootView.findViewById<ImageView>(R.id.home_primary_icon)
-        kicker?.text = context.getString(kickerRes(decision))
-        title?.text = title(context, decision, phoneName)
-        subtitle?.text = stage?.let { context.getString(it.label) } ?: context.getString(subtitleRes(decision))
-        action?.text = context.getString(actionRes(decision))
+        val usbAsWireless = settings.usbWirelessDongle
+        kicker?.text = context.getString(kickerRes(decision, usbAsWireless))
+        title?.text = title(context, decision, phoneName, usbAsWireless)
+        subtitle?.text = stage?.let { context.getString(it.label) } ?: context.getString(subtitleRes(decision, usbAsWireless))
+        action?.text = context.getString(actionRes(decision, usbAsWireless))
         // Nothing to start while a connection is on its way; Cancel is the one thing left to do.
         action?.visibility = if (connecting) View.GONE else View.VISIBLE
         icon?.setImageResource(iconRes(decision.primary))
@@ -651,15 +658,18 @@ object HomeUiHelper {
      * to the other apps.
      */
     fun applyFavoritesVisibility(rootView: View, isLauncherActive: Boolean, showFavorites: Boolean) {
-        // The whole area, not only its rows: an empty area that is still visible keeps the gap
-        // above it, and outside launcher mode the main button then ended short of the driver bar.
+        val widgetsVisible = rootView.findViewById<View>(R.id.home_widgets_scroll)?.visibility == View.VISIBLE
+        val favoritesVisible = isLauncherActive && showFavorites
         rootView.findViewById<View>(R.id.home_favorites_area)?.visibility =
-            if (isLauncherActive) View.VISIBLE else View.GONE
-        rootView.findViewById<View>(R.id.home_favorites)?.visibility = if (isLauncherActive) View.VISIBLE else View.GONE
+            if (isLauncherActive && (showFavorites || widgetsVisible)) View.VISIBLE else View.GONE
+        rootView.findViewById<View>(R.id.home_favorites)?.visibility =
+            if (favoritesVisible) View.VISIBLE else View.GONE
+        // "All" lives in the sidebar in launcher mode (replacing Exit), so keep the row's tile hidden.
+        rootView.findViewById<View>(R.id.apps_button)?.visibility = View.GONE
         rootView.findViewById<View>(R.id.home_primary_icon_tile)?.visibility =
             if (isLauncherActive) View.GONE else View.VISIBLE
         favoriteSlotIds.forEach {
-            rootView.findViewById<View>(it)?.visibility = if (showFavorites) View.VISIBLE else View.GONE
+            rootView.findViewById<View>(it)?.visibility = if (favoritesVisible) View.VISIBLE else View.GONE
         }
     }
 
@@ -780,17 +790,17 @@ object HomeUiHelper {
         Connection.SELF -> palette.self
     }
 
-    private fun kickerRes(decision: Decision): Int = when (decision.status) {
+    internal fun kickerRes(decision: Decision, usbAsWireless: Boolean = false): Int = when (decision.status) {
         Status.ACTIVE_SESSION -> R.string.home_kicker_active
         Status.RECONNECTING -> R.string.home_kicker_last_connection
         else -> when (decision.primary) {
-            Connection.USB -> R.string.home_kicker_cable
+            Connection.USB -> if (usbAsWireless) R.string.home_kicker_wireless else R.string.home_kicker_cable
             Connection.WIFI -> R.string.home_kicker_wireless
             Connection.SELF -> R.string.self_mode
         }
     }
 
-    private fun title(context: Context, decision: Decision, phoneName: String?): String = when (decision.status) {
+    internal fun title(context: Context, decision: Decision, phoneName: String?, usbAsWireless: Boolean = false): String = when (decision.status) {
         Status.ACTIVE_SESSION -> context.getString(R.string.home_title_active)
         Status.RECONNECTING -> context.getString(R.string.home_title_reconnecting)
         Status.CONNECTING -> context.getString(R.string.home_title_connecting)
@@ -799,7 +809,7 @@ object HomeUiHelper {
             ?: context.getString(R.string.home_title_phone_detected_generic)
         Status.WAITING, Status.READY -> context.getString(
             when (decision.primary) {
-                Connection.USB -> R.string.home_title_usb_ready
+                Connection.USB -> if (usbAsWireless) R.string.home_title_wifi_ready else R.string.home_title_usb_ready
                 Connection.WIFI -> R.string.home_title_wifi_ready
                 Connection.SELF -> R.string.home_title_self_ready
             }
@@ -995,19 +1005,19 @@ object HomeUiHelper {
         return scale > 0f
     }
 
-    private fun subtitleRes(decision: Decision): Int = when {
+    internal fun subtitleRes(decision: Decision, usbAsWireless: Boolean = false): Int = when {
         decision.status == Status.SEARCHING -> R.string.home_subtitle_searching
-        decision.primary == Connection.USB -> R.string.home_subtitle_usb
+        decision.primary == Connection.USB -> if (usbAsWireless) R.string.home_subtitle_usb_dongle else R.string.home_subtitle_usb
         decision.primary == Connection.WIFI -> R.string.home_subtitle_wifi
         else -> R.string.home_subtitle_self
     }
 
-    private fun actionRes(decision: Decision): Int = when (decision.status) {
+    internal fun actionRes(decision: Decision, usbAsWireless: Boolean = false): Int = when (decision.status) {
         Status.ACTIVE_SESSION -> R.string.home_action_back_to_android_auto
         Status.RECONNECTING -> R.string.home_action_connect_now
         Status.SEARCHING -> R.string.home_action_search_again
         else -> when (decision.primary) {
-            Connection.USB -> R.string.home_action_connect_usb
+            Connection.USB -> if (usbAsWireless) R.string.home_action_connect_wireless_dongle else R.string.home_action_connect_usb
             Connection.WIFI -> R.string.home_action_connect_wifi
             Connection.SELF -> R.string.home_action_start_self_mode
         }
