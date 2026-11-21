@@ -189,14 +189,12 @@ class AapNavigationHelper(
             ?.number
             ?: maneuverType?.let { maneuverTypeToLegacyTurnSide(it) }
         val nextManeuver = state?.stepsList?.firstOrNull()?.maneuver?.type?.number
-        val turnNumber = (
-            state?.stepsList?.firstOrNull()?.maneuver?.roundaboutExitNumber
-                ?: detail?.takeIf { it.hasTurnNumber() }?.turnNumber
-            )
-        val turnAngle = (
-            state?.stepsList?.firstOrNull()?.maneuver?.roundaboutExitAngle
-                ?: detail?.takeIf { it.hasTurnAngle() }?.turnAngle
-            )
+        // Proto getters return 0 for unset fields, which would mask the legacy values.
+        val maneuver = state?.stepsList?.firstOrNull()?.takeIf { it.hasManeuver() }?.maneuver
+        val turnNumber = maneuver?.takeIf { it.hasRoundaboutExitNumber() }?.roundaboutExitNumber
+            ?: detail?.takeIf { it.hasTurnNumber() }?.turnNumber
+        val turnAngle = maneuver?.takeIf { it.hasRoundaboutExitAngle() }?.roundaboutExitAngle
+            ?: detail?.takeIf { it.hasTurnAngle() }?.turnAngle
         val actionText = state?.stepsList?.firstOrNull()?.maneuver?.type?.let { maneuverTypeToAction(it) }
             ?: detail?.takeIf { it.hasNextTurn() }?.let { nextEventToAction(it.nextTurn) }
             ?: context.getString(R.string.nav_action_unknown)
