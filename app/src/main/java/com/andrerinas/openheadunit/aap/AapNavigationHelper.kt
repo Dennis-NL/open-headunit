@@ -180,14 +180,13 @@ class AapNavigationHelper(
             ?.takeIf { it.hasType() }
             ?.type
 
-        val nextEventType = detail?.takeIf { it.hasNextTurn() }?.nextTurn?.number
-            ?: (maneuverType?.let { maneuverTypeToLegacyNextEvent(it) }
-                ?: LegacyNextEvent.UNKNOWN.number)
-        val turnSide = detail
-            ?.takeIf { it.hasSide() }
-            ?.side
-            ?.number
-            ?: maneuverType?.let { maneuverTypeToLegacyTurnSide(it) }
+        // The state maneuver is current from the previous turn on; the legacy detail can lag behind it.
+        val nextEventType = maneuverType?.let { maneuverTypeToLegacyNextEvent(it) }
+            ?.takeIf { it != LegacyNextEvent.UNKNOWN.number }
+            ?: detail?.takeIf { it.hasNextTurn() }?.nextTurn?.number
+            ?: LegacyNextEvent.UNKNOWN.number
+        val turnSide = maneuverType?.let { maneuverTypeToLegacyTurnSide(it) }
+            ?: detail?.takeIf { it.hasSide() }?.side?.number
         val nextManeuver = state?.stepsList?.firstOrNull()?.maneuver?.type?.number
         // Proto getters return 0 for unset fields, which would mask the legacy values.
         val maneuver = state?.stepsList?.firstOrNull()?.takeIf { it.hasManeuver() }?.maneuver
