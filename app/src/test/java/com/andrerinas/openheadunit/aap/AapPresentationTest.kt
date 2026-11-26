@@ -356,6 +356,8 @@ class AapPresentationTest {
         fun field(name: String) = AapService::class.java.getDeclaredField(name).apply { isAccessible = true }
         val notification = mock<com.andrerinas.openheadunit.main.BackgroundNotification>()
         field("mediaNotification\$delegate").set(service, lazyOf(notification))
+        val broadcaster = mock<AapMediaBroadcaster>()
+        field("mediaBroadcaster\$delegate").set(service, lazyOf(broadcaster))
         val old = AaPresentationSession().also { it.retire() }
         val current = AaPresentationSession()
         val job = Job()
@@ -367,13 +369,14 @@ class AapPresentationTest {
         close.invoke(service, old)
         assertFalse(job.isCancelled)
         assertSame(meta, field("lastAaMediaMetadata").get(service))
-        verifyNoInteractions(notification)
+        verifyNoInteractions(notification, broadcaster)
         current.retire()
         close.invoke(service, current)
         assertTrue(job.isCancelled)
         assertNull(field("lastAaMediaMetadata").get(service))
         assertEquals(true, field("lastAaPlaybackIsPlaying").get(service))
         verify(notification).cancel()
+        verify(broadcaster).onSessionEnd()
     }
 
     @Test fun failingNavigationCleanupStillClosesMediaSessionOnce() {

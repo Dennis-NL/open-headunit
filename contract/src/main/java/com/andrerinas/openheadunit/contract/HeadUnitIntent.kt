@@ -167,6 +167,27 @@ class NavigationUpdateIntent(
 }
 
 /**
+ * Track info from the phone's media session, sent with [NavigationUpdateIntent.BROADCAST_PERMISSION] whenever song,
+ * artist, album or playing changes (not on position-only updates). The end of an AA session sends empty strings and playing=false.
+ */
+class MediaUpdateIntent(song: String, artist: String, album: String, playing: Boolean) : Intent(action) {
+    init {
+        putExtra(EXTRA_SONG, song)
+        putExtra(EXTRA_ARTIST, artist)
+        putExtra(EXTRA_ALBUM, album)
+        putExtra(EXTRA_PLAYING, playing)
+    }
+
+    companion object {
+        const val action = "${HeadUnit.packageName}.MEDIA_UPDATE"
+        const val EXTRA_SONG = "song"
+        const val EXTRA_ARTIST = "artist"
+        const val EXTRA_ALBUM = "album"
+        const val EXTRA_PLAYING = "playing"
+    }
+}
+
+/**
  * The commands [HeadUnitCommand.RECEIVER_CLASS] accepts. The component is in [HeadUnit.packageName]
  * but actions are prefixed `com.andrerinas.openheadunit`: applicationId and namespace deliberately
  * differ, and the wrong one silently does nothing. Worked examples are in `contract/README.md`.

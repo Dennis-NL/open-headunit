@@ -243,6 +243,7 @@ class AapService : Service() {
     }
     private val settings: Settings by lazy { App.provide(this).settings }
     private val mediaNotification by lazy { BackgroundNotification(this) }
+    private val mediaBroadcaster by lazy { AapMediaBroadcaster(this) }
 
     /** Last `NetworkCallback.onAvailable` we acted on, for the debounce in [registerNetworkMonitor]. */
     private var lastNetworkAvailableKickMs: Long = 0L
@@ -551,6 +552,7 @@ class AapService : Service() {
     }
 
     private fun onAaPresentationClosed(session: AaPresentationSession) {
+        if (aaPresentationSession === session) mediaBroadcaster.onSessionEnd()
         if (!isDestroying && aaPresentationSession === session) clearAaPresentationMetadata()
         // Keep the last playback state until onDisconnected records resume intent. A new
         // session resets it on its first update even if that state-flow emission was skipped.
@@ -571,6 +573,7 @@ class AapService : Service() {
 
     private fun onAaMediaMetadataFromPhone(meta: MediaPlayback.MediaMetaData, session: AaPresentationSession) {
         if (!acceptPresentationSession(session)) return
+        mediaBroadcaster.onMetadata(meta)
         lastAaMediaMetadata = meta
         if (!shouldSyncAaMediaMetadata()) return
         // Avoid showing a previous track's art with new title/artist until decode finishes.
@@ -580,6 +583,7 @@ class AapService : Service() {
 
     private fun onAaPlaybackStatusFromPhone(status: MediaPlayback.MediaPlaybackStatus, session: AaPresentationSession) {
         if (!acceptPresentationSession(session)) return
+        mediaBroadcaster.onStatus(status)
         if (status.hasPlaybackSeconds()) {
             lastAaPlaybackPositionMs = status.playbackSeconds.protoUint32ToLong() * 1000L
         }
@@ -1824,6 +1828,7 @@ class AapService : Service() {
         // A failed USB open has no live AAP resources to retire. Its Save loop and fallback
         // still own recovery; an end after the open has run onConnected and needs the full cleanup.
         if (!state.hadPhysicalConnection && state.settingsRetryOwner?.acceptsSettingsRestart(state) == true) return
+        mediaBroadcaster.onSessionEnd()
         // Down notices clear an armed watch even after the carrier already dropped the sink.
         if (Esp32RelaySession.hasSavedEsp32Relay(this)) {
             Esp32RelaySession.notifyProjection(false)
