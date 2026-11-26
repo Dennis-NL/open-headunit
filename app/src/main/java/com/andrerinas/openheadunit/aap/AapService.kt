@@ -243,6 +243,7 @@ class AapService : Service() {
     }
     private val settings: Settings by lazy { App.provide(this).settings }
     private val mediaNotification by lazy { BackgroundNotification(this) }
+    private val mediaBroadcaster by lazy { AapMediaBroadcaster(this) }
 
     /** Last `NetworkCallback.onAvailable` we acted on, for the debounce in [registerNetworkMonitor]. */
     private var lastNetworkAvailableKickMs: Long = 0L
@@ -547,6 +548,7 @@ class AapService : Service() {
         lastAaMediaMetadata = null
         cachedAaAlbumArtBitmap = null
         mediaNotification.cancel()
+        mediaBroadcaster.onSessionEnded()
         applyPlaceholderMediaMetadata()
     }
 
@@ -572,6 +574,7 @@ class AapService : Service() {
     private fun onAaMediaMetadataFromPhone(meta: MediaPlayback.MediaMetaData, session: AaPresentationSession) {
         if (!acceptPresentationSession(session)) return
         lastAaMediaMetadata = meta
+        mediaBroadcaster.onMetadata(meta)
         if (!shouldSyncAaMediaMetadata()) return
         // Avoid showing a previous track's art with new title/artist until decode finishes.
         cachedAaAlbumArtBitmap = null
@@ -580,6 +583,7 @@ class AapService : Service() {
 
     private fun onAaPlaybackStatusFromPhone(status: MediaPlayback.MediaPlaybackStatus, session: AaPresentationSession) {
         if (!acceptPresentationSession(session)) return
+        mediaBroadcaster.onPlaybackStatus(status)
         if (status.hasPlaybackSeconds()) {
             lastAaPlaybackPositionMs = status.playbackSeconds.protoUint32ToLong() * 1000L
         }
@@ -1967,6 +1971,7 @@ class AapService : Service() {
         lastAaPlaybackIsPlaying = null
         cachedAaAlbumArtBitmap = null
         mediaNotification.cancel()
+        mediaBroadcaster.onSessionEnded()
         applyPlaceholderMediaMetadata()
         // Keep MediaSession alive across disconnect/reconnect cycles.
         // Only deactivate it — do NOT release it. A released session can no longer
@@ -3498,6 +3503,7 @@ class AapService : Service() {
         mediaMetadataDecodeJob?.cancel()
         cachedAaAlbumArtBitmap = null
         mediaNotification.cancel()
+        mediaBroadcaster.onSessionEnded()
         commManager.onAaMediaMetadata = null
         commManager.onAaPlaybackStatus = null
         commManager.onAaPresentationClosed = null
