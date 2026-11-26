@@ -137,4 +137,39 @@ class NightOverlayNavigationTest {
             assertEquals("Exit 3 · 120 deg", received.last()?.details)
         }
     }
+
+    @Suppress("DEPRECATION")
+    @Test fun unsetRoundaboutFieldsInStateFallBackToNextTurnDetail() {
+        val context = context()
+        whenever(context.getString(R.string.night_overlay_exit_number, 2)).thenReturn("Exit 2")
+        whenever(context.getString(R.string.night_overlay_exit_angle, 90)).thenReturn("90 deg")
+        val helper = AapNavigationHelper(context) { }
+        val snapshot = AapNavigationHelper.NavigationSnapshot(
+            nextTurnDetail = AapNavigationHelper.TimedMessage(
+                NavigationStatus.NextTurnDetail.newBuilder()
+                    .setNextTurn(NavigationStatus.NextTurnDetail.NextEvent.ROUNDABOUT_ENTER_AND_EXIT)
+                    .setTurnNumber(2)
+                    .setTurnAngle(90)
+                    .buildPartial(),
+                0L
+            ),
+            navigationState = AapNavigationHelper.TimedMessage(
+                NavigationStatus.NavigationState.newBuilder().addSteps(
+                    NavigationStatus.NavigationStep.newBuilder().setManeuver(
+                        NavigationStatus.NavigationManeuver.newBuilder()
+                            .setType(NavigationStatus.NavigationManeuver.NavigationType.ROUNDABOUT_ENTER_AND_EXIT_CCW)
+                    )
+                ).build(),
+                0L
+            )
+        )
+        var constructorArgs: List<*>? = null
+        mockConstruction(NavigationUpdateIntent::class.java) { _, construction ->
+            constructorArgs = construction.arguments()
+        }.use {
+            helper.sendFullNavigationBroadcast(snapshot, 0)
+            assertEquals(2, constructorArgs?.get(6))
+            assertEquals(90, constructorArgs?.get(7))
+        }
+    }
 }
