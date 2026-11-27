@@ -162,6 +162,7 @@ class AapNavigationHelper(
             ?.takeIf { it.hasDistance() && it.distance.hasMeters() }
             ?.distance
             ?.meters
+            ?.takeIf { it > 0 }
             ?: turnDistance?.takeIf { it.hasDistanceMeters() }?.distanceMeters?.takeIf { it >= 0 }
         val timeSeconds = stepDistance
             ?.takeIf { it.hasTimeToStepSeconds() }
