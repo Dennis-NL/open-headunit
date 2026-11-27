@@ -61,6 +61,36 @@ class NightOverlayNavigationTest {
     }
 
     @Suppress("DEPRECATION")
+    @Test fun zeroStepDistanceFallsBackToNextTurnDistance() {
+        val received = mutableListOf<NightOverlayState.Navigation?>()
+        val helper = AapNavigationHelper(context()) { received.add(it) }
+        val snapshot = AapNavigationHelper.NavigationSnapshot(
+            navigationState = AapNavigationHelper.TimedMessage(
+                NavigationStatus.NavigationState.newBuilder().addSteps(
+                    NavigationStatus.NavigationStep.newBuilder().setManeuver(
+                        NavigationStatus.NavigationManeuver.newBuilder()
+                            .setType(NavigationStatus.NavigationManeuver.NavigationType.TURN_NORMAL_LEFT)
+                    )
+                ).build(), 0L
+            ),
+            currentPosition = AapNavigationHelper.TimedMessage(
+                NavigationStatus.NavigationCurrentPosition.newBuilder().setStepDistance(
+                    NavigationStatus.NavigationStepDistance.newBuilder().setDistance(
+                        NavigationStatus.NavigationDistance.newBuilder().setMeters(0)
+                    )
+                ).build(), 0L
+            ),
+            nextTurnDistance = AapNavigationHelper.TimedMessage(
+                NavigationStatus.NextTurnDistanceEvent.newBuilder().setDistanceMeters(590).buildPartial(), 0L
+            )
+        )
+        mockConstruction(NavigationUpdateIntent::class.java).use {
+            helper.sendFullNavigationBroadcast(snapshot, 4)
+            assertEquals(590, received.last()?.distanceMeters)
+        }
+    }
+
+    @Suppress("DEPRECATION")
     @Test fun legacyManeuverWithoutDistanceDoesNotInventZeroMeters() {
         val received = mutableListOf<NightOverlayState.Navigation?>()
         val helper = AapNavigationHelper(context()) { received.add(it) }
